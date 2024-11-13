@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NEA first draft", "NEA first draft\NEA first draft.csproj", "{9B12C0F8-5BD9-411B-8936-2A0775B53632}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NEA first draft", "NEA first draft\NEA first draft.csproj", "{9B12C0F8-5BD9-411B-8936-2A0775B53632}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockProSim.Data", "StockProSim.Data\StockProSim.Data.csproj", "{4FE79B10-3A54-4BFF-A789-AC4039B736D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{9B12C0F8-5BD9-411B-8936-2A0775B53632}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B12C0F8-5BD9-411B-8936-2A0775B53632}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B12C0F8-5BD9-411B-8936-2A0775B53632}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
