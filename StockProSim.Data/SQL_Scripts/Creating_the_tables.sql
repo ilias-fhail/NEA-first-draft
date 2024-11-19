@@ -1,4 +1,4 @@
-CREATE TABLE Client(
+CREATE TABLE Clients(
 	UserID int Primary Key,
     UserFirstName varchar(255),
     UserLastName varchar(255),
@@ -22,6 +22,6 @@ CREATE TABLE Trader (
     TradeWorth int,
 	DateOfTrade date,
 	TimeOfTrade time,
-    FOREIGN KEY (UserID) REFERENCES Client(UserID)
+    FOREIGN KEY (UserID) REFERENCES Clients(UserID)
 );
 
