@@ -9,7 +9,7 @@ namespace NEA_first_draft
     {
         static void Main()
         {
-            const string ConnectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Portfolio;Integrated Security=True;TrustServerCertificate=True";
+            /*const string ConnectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Simulator;Integrated Security=True;TrustServerCertificate=True";
 
             Console.WriteLine(ConnectionString);
             MyServerDb db = new(ConnectionString);
@@ -24,7 +24,7 @@ namespace NEA_first_draft
 
             Console.WriteLine("Please enter a name to add:");
             string newName = Console.ReadLine() ?? string.Empty;
-            db.AddUserName(newName);
+            db.AddUserName(newName);*/
         }
     }
 }
