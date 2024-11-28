@@ -14,6 +14,8 @@ namespace NEA_first_draft
             string ticker = Console.ReadLine();
 
             await APICalls.FetchAndDisplayStockInfo(ticker);
+            MyServerDb db = new MyServerDb();
+            db.AddToWatchlist("AAPL");
         }
     }
 }

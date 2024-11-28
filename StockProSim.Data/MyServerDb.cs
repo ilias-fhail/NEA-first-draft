@@ -8,9 +8,9 @@ namespace StockProSim.Data
     {
         private string _connectionString;
 
-        public MyServerDb(string connectionString)
+        public MyServerDb()
         {
-            _connectionString = connectionString;
+            _connectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Simulator;Integrated Security=True;TrustServerCertificate=True";
         }
 
         public List<string> GetUserNames()
@@ -52,9 +52,24 @@ namespace StockProSim.Data
                 connection.ConnectionString = _connectionString;
                 connection.Open();
                 SqlCommand command = connection.CreateCommand();
-                command.CommandText = "insert into dbo."
+                command.CommandText = "insert into dbo.Watch_List (StockTicker) VALUES (@Name)";
+                var nameParameter = command.Parameters.Add("@Name", SqlDbType.Text);
+                nameParameter.Value = ticker;
+                command.ExecuteNonQuery();
             }
         }
-
+        public void RemoveFromWatchlist(string ticker)
+        {
+            using (SqlConnection connection = new SqlConnection())
+            {
+                connection.ConnectionString = _connectionString;
+                connection.Open();
+                SqlCommand command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Name";
+                var nameParameter = command.Parameters.Add("@Name", SqlDbType.Text);
+                nameParameter.Value = ticker;
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }
