@@ -45,6 +45,16 @@ namespace StockProSim.Data
                 command.ExecuteNonQuery();
             }
         }
+        public void AddToWatchlist(string ticker)
+        {
+            using (SqlConnection connection = new SqlConnection())
+            {
+                connection.ConnectionString = _connectionString;
+                connection.Open();
+                SqlCommand command = connection.CreateCommand();
+                command.CommandText = "insert into dbo."
+            }
+        }
 
     }
 }

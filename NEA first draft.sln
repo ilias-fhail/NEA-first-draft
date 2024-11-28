@@ -4,12 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NEA first draft", "NEA first draft\NEA first draft.csproj", "{9B12C0F8-5BD9-411B-8936-2A0775B53632}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4B27C01-9FB7-4305-B574-19CA5E132B7B} = {E4B27C01-9FB7-4305-B574-19CA5E132B7B}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockProSim.Data", "StockProSim.Data\StockProSim.Data.csproj", "{4FE79B10-3A54-4BFF-A789-AC4039B736D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock API Calls", "Stock API Calls\Stock API Calls.csproj", "{31C43C47-829E-4C40-8090-BA6FAF0AC530}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp1", "..\BlazorApp1\BlazorApp1\BlazorApp1.csproj", "{E4B27C01-9FB7-4305-B574-19CA5E132B7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API Calls", "API Calls\API Calls.csproj", "{61B88948-3359-4BFF-AD06-62EB9054ED1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +28,14 @@ Global
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{31C43C47-829E-4C40-8090-BA6FAF0AC530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{31C43C47-829E-4C40-8090-BA6FAF0AC530}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{31C43C47-829E-4C40-8090-BA6FAF0AC530}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{31C43C47-829E-4C40-8090-BA6FAF0AC530}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61B88948-3359-4BFF-AD06-62EB9054ED1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61B88948-3359-4BFF-AD06-62EB9054ED1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61B88948-3359-4BFF-AD06-62EB9054ED1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61B88948-3359-4BFF-AD06-62EB9054ED1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

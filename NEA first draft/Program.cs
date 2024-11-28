@@ -1,30 +1,19 @@
 ﻿using StockProSim.Data;
+using API_Calls;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 
 namespace NEA_first_draft
 {
-    internal class Program
+    class Program
     {
-        static void Main()
+        static async Task Main(string[] args)
         {
-            /*const string ConnectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Simulator;Integrated Security=True;TrustServerCertificate=True";
+            Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
+            string ticker = Console.ReadLine();
 
-            Console.WriteLine(ConnectionString);
-            MyServerDb db = new(ConnectionString);
-
-            var names = db.GetUserNames();
-            Console.WriteLine("User Names:");
-            foreach (var name in names)
-            {
-                Console.WriteLine(name);
-            }
-            Console.WriteLine();
-
-            Console.WriteLine("Please enter a name to add:");
-            string newName = Console.ReadLine() ?? string.Empty;
-            db.AddUserName(newName);*/
+            await APICalls.FetchAndDisplayStockInfo(ticker);
         }
     }
 }
