@@ -1,12 +1,9 @@
-﻿namespace API_Calls
+﻿namespace APIcalls
 {
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
-    using static BlazorApp1.Components.Pages.Weather;
-
-
     public class StockData
     {
         public string Ticker { get; set; }
