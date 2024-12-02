@@ -56,7 +56,7 @@
 
                     if (response.IsSuccessStatusCode)
                     {
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        string jsonResponse = await response.Content.ReadAsStringAsync(); 
                         var stockData = JsonConvert.DeserializeObject<StockData>(jsonResponse);
                         stockData.Ticker = ticker;
                         return stockData;
