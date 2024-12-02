@@ -71,5 +71,28 @@ namespace StockProSim.Data
                 command.ExecuteNonQuery();
             }
         }
+
+        public async Task<List<string>> GetWatchlistAsync()
+        {
+            List<string> watchlist = new List<string>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "SELECT StockTicker FROM dbo.Watch_List";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            watchlist.Add(reader.GetString(0));
+                        }
+                    }
+                }
+            }
+
+            return watchlist;
+        }
     }
 }
