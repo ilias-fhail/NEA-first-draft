@@ -28,7 +28,7 @@
 
         public DateTime LastUpdate => DateTimeOffset.FromUnixTimeSeconds(LastUpdateUnix).UtcDateTime;
 
-        public decimal PriceChange => Math.Round(100 * (CurrentPrice - OpenPrice) / OpenPrice, 2);
+        public decimal PriceChange => (CurrentPrice - OpenPrice);
     }
 
     public class APICalls

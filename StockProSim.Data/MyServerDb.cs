@@ -45,30 +45,37 @@ namespace StockProSim.Data
                 command.ExecuteNonQuery();
             }
         }
-        public void AddToWatchlist(string ticker)
+        public async Task AddToWatchlist(string ticker)
         {
-            using (SqlConnection connection = new SqlConnection())
+            if (string.IsNullOrWhiteSpace(ticker))
+                throw new ArgumentException("Ticker cannot be null or empty.", nameof(ticker));
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                connection.ConnectionString = _connectionString;
-                connection.Open();
-                SqlCommand command = connection.CreateCommand();
-                command.CommandText = "insert into dbo.Watch_List (StockTicker) VALUES (@Name)";
-                var nameParameter = command.Parameters.Add("@Name", SqlDbType.Text);
-                nameParameter.Value = ticker;
-                command.ExecuteNonQuery();
+                await connection.OpenAsync();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "INSERT INTO dbo.Watch_List (StockTicker) VALUES (@Ticker)";
+                    command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
+                    await command.ExecuteNonQueryAsync();
+                }
             }
         }
-        public void RemoveFromWatchlist(string ticker)
+
+        public async Task RemoveFromWatchlist(string ticker)
         {
-            using (SqlConnection connection = new SqlConnection())
+            if (string.IsNullOrWhiteSpace(ticker))
+                throw new ArgumentException("Ticker cannot be null or empty.", nameof(ticker));
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
             {
-                connection.ConnectionString = _connectionString;
-                connection.Open();
-                SqlCommand command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Name";
-                var nameParameter = command.Parameters.Add("@Name", SqlDbType.Text);
-                nameParameter.Value = ticker;
-                command.ExecuteNonQuery();
+                await connection.OpenAsync();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Ticker";
+                    command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
+                    await command.ExecuteNonQueryAsync();
+                }
             }
         }
 

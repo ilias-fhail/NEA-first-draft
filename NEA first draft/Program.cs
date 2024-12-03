@@ -1,5 +1,5 @@
 ﻿using StockProSim.Data;
-using API_Calls;
+using APIcalls;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
@@ -10,12 +10,16 @@ namespace NEA_first_draft
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
-            string ticker = Console.ReadLine();
+            //Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
+            //string ticker = Console.ReadLine();
 
-            await APICalls.FetchAndDisplayStockInfo(ticker);
+            //await APICalls.FetchAndDisplayStockInfo(ticker);
             MyServerDb db = new MyServerDb();
-            db.AddToWatchlist("AAPL");
+            var watchlist = await db.GetWatchlistAsync();
+            foreach (var item in watchlist)
+            {
+                Console.WriteLine(item);
+            }
         }
     }
 }
