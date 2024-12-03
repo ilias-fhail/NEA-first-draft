@@ -31,7 +31,7 @@
 
         public DateTime LastUpdate => DateTimeOffset.FromUnixTimeSeconds(LastUpdateUnix).UtcDateTime;
 
-        public decimal PriceChange => Math.Round(100 * (CurrentPrice - OpenPrice) / OpenPrice, 2);
+        public decimal PriceChange => CurrentPrice - OpenPrice;
     }
 
     public class APICalls
@@ -45,7 +45,7 @@
             _apiKey = apiKey;
         }
 
-        public async Task<StockData?> FetchStockInfoAsync(string ticker)
+        public async Task<dynamic> FetchStockInfoAsync(string ticker)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -56,12 +56,9 @@
 
                     if (response.IsSuccessStatusCode)
                     {
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
+                        string jsonResponse = await response.Content.ReadAsStringAsync(); 
                         var stockData = JsonConvert.DeserializeObject<StockData>(jsonResponse);
-                        if (stockData != null)
-                        {
-                            stockData.Ticker = ticker;
-                        }
+                        stockData.Ticker = ticker;
                         return stockData;
                     }
                     else
@@ -77,7 +74,6 @@
                 }
             }
         }
-
 
         public static async Task FetchAndDisplayStockInfo(string ticker)
         {
