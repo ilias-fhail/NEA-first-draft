@@ -101,5 +101,127 @@ namespace StockProSim.Data
 
             return watchlist;
         }
+        public async Task BuyStockAsync(string ticker, decimal priceBought, decimal currentPrice, decimal priceChange, int quantity)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                checkCommand.Parameters.AddWithValue("@Ticker", ticker);
+
+                var result = await checkCommand.ExecuteScalarAsync();
+
+                if (result != null)
+                {
+                    var updateCommand = new SqlCommand(
+                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @CurrentPrice, PriceChange = @PriceChange WHERE StockTicker = @Ticker",
+                        connection);
+                    updateCommand.Parameters.AddWithValue("@Ticker", ticker);
+                    updateCommand.Parameters.AddWithValue("@Quantity", quantity);
+                    updateCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
+                    updateCommand.Parameters.AddWithValue("@PriceChange", priceChange);
+
+                    await updateCommand.ExecuteNonQueryAsync();
+                }
+                else
+                {
+                    var insertCommand = new SqlCommand(
+                        "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity)",
+                        connection);
+                    insertCommand.Parameters.AddWithValue("@Ticker", ticker);
+                    insertCommand.Parameters.AddWithValue("@PriceBought", priceBought);
+                    insertCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
+                    insertCommand.Parameters.AddWithValue("@PriceChange", priceChange);
+                    insertCommand.Parameters.AddWithValue("@Quantity", quantity);
+
+                    await insertCommand.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task SellStockAsync(string ticker, int quantity)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                checkCommand.Parameters.AddWithValue("@Ticker", ticker);
+
+                var result = await checkCommand.ExecuteScalarAsync();
+
+                if (result != null)
+                {
+                    int currentQuantity = (int)result;
+                    if (quantity > currentQuantity)
+                    {
+                        throw new InvalidOperationException("Cannot sell more than available quantity.");
+                    }
+
+                    if (quantity == currentQuantity)
+                    {
+                        var deleteCommand = new SqlCommand("DELETE FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                        deleteCommand.Parameters.AddWithValue("@Ticker", ticker);
+
+                        await deleteCommand.ExecuteNonQueryAsync();
+                    }
+                    else
+                    {
+                        var updateCommand = new SqlCommand(
+                            "UPDATE dbo.TradeHistory SET Quantity = Quantity - @Quantity WHERE StockTicker = @Ticker",
+                            connection);
+                        updateCommand.Parameters.AddWithValue("@Ticker", ticker);
+                        updateCommand.Parameters.AddWithValue("@Quantity", quantity);
+
+                        await updateCommand.ExecuteNonQueryAsync();
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("Cannot sell a stock that does not exist.");
+                }
+            }
+        }
+        public async Task<List<TradeHistory>> GetTradeHistoryAsync()
+        {
+            List<TradeHistory> trades = new List<TradeHistory>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var command = new SqlCommand("SELECT * FROM dbo.TradeHistory", connection);
+                var reader = await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    trades.Add(new TradeHistory
+                    {
+                        Id = reader.GetInt32(0),
+                        StockTicker = reader.GetString(1),
+                        PriceBought = reader.GetDecimal(2),
+                        CurrentPrice = reader.GetDecimal(3),
+                        PriceChange = reader.GetDecimal(4),
+                        Quantity = reader.GetInt32(5),
+                        TradeValue = reader.GetDecimal(6)
+                    });
+                }
+            }
+
+            return trades;
+        }
+
     }
+    public class TradeHistory
+    {
+        public int Id { get; set; }
+        public string StockTicker { get; set; }
+        public decimal PriceBought { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public decimal PriceChange { get; set; }
+        public int Quantity { get; set; }
+        public decimal TradeValue { get; set; }
+    }
+
 }
