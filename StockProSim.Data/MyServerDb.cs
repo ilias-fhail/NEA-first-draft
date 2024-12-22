@@ -115,12 +115,11 @@ namespace StockProSim.Data
                 if (result != null)
                 {
                     var updateCommand = new SqlCommand(
-                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @CurrentPrice, PriceChange = @PriceChange WHERE StockTicker = @Ticker",
+                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @PriceBought WHERE StockTicker = @Ticker",
                         connection);
                     updateCommand.Parameters.AddWithValue("@Ticker", ticker);
                     updateCommand.Parameters.AddWithValue("@Quantity", quantity);
-                    updateCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
-                    updateCommand.Parameters.AddWithValue("@PriceChange", priceChange);
+                    updateCommand.Parameters.AddWithValue("@PriceBought", currentPrice);
 
                     await updateCommand.ExecuteNonQueryAsync();
                 }
@@ -201,10 +200,10 @@ namespace StockProSim.Data
                         Id = reader.GetInt32(0),
                         StockTicker = reader.GetString(1),
                         PriceBought = reader.GetDecimal(2),
-                        CurrentPrice = reader.GetDecimal(3),
+                        CurrentPrice = reader.GetDecimal(2) + reader.GetDecimal(4),
                         PriceChange = reader.GetDecimal(4),
                         Quantity = reader.GetInt32(5),
-                        TradeValue = reader.GetDecimal(6)
+                        TradeValue = (reader.GetDecimal(2) + reader.GetDecimal(4)) * reader.GetInt32(5)
                     });
                 }
             }
