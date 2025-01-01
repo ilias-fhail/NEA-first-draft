@@ -1,10 +1,11 @@
-﻿namespace RIsk_Algorithms
+﻿using APIcalls;
+namespace RIsk_Algorithms
 {
     public class RiskCalculator
     {
-        int StockVariance()
+ async  void StockVariance()
         {
-            
+           
         }
     }
 }

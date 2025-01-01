@@ -7,4 +7,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\BlazorApp1\BlazorApp1\BlazorApp1.csproj" />
+    <ProjectReference Include="..\APIcalls\APIcalls.csproj" />
+    <ProjectReference Include="..\NEA first draft\NEA first draft.csproj" />
+    <ProjectReference Include="..\StockProSim.Data\StockProSim.Data.csproj" />
+  </ItemGroup>
+
 </Project>
