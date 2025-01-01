@@ -66,5 +66,28 @@
                  }
             }
         }
+        public async Task<decimal> FetchCurrentPriceAsync(string ticker)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                string url = $"{_baseApi}/quote?symbol={ticker}&token={_apiKey}";
+                HttpResponseMessage response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    var json = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                    if (json != null && json["c"] != null)
+                    {
+                        return (decimal)json["c"];
+                    }
+                    else { return 0; }
+                }
+                else { return 0; }
+            }
+        }
+
+
     }
 }
