@@ -89,51 +89,6 @@
                 else { return 0; }
             }
         }
-        public async Task<List<(DateTime Date, decimal ClosePrice)>> FetchHistoricalDataAsync(string ticker)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string url = $"{_baseApi}/stock/candle";
-
-                var now = DateTime.UtcNow;
-                var twoYearsAgo = now.AddYears(-2);
-                long fromTimestamp = new DateTimeOffset(twoYearsAgo).ToUnixTimeSeconds();
-                long toTimestamp = new DateTimeOffset(now).ToUnixTimeSeconds();
-
-                string queryString = $"?symbol={ticker}&resolution=D&from={fromTimestamp}&to={toTimestamp}&token={_apiKey}";
-                HttpResponseMessage response = await client.GetAsync(url + queryString);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-                    var json = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-
-                    if (json != null && json["c"] != null && json["t"] != null)
-                    {
-                        var closePrices = ((IEnumerable<dynamic>)json["c"]).Select(c => (decimal)c).ToList();
-                        var timestamps = ((IEnumerable<dynamic>)json["t"]).Select(t => (long)t).ToList();
-
-                        var historicalData = timestamps.Select((timestamp, index) =>
-                            (
-                                Date: DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime,
-                                ClosePrice: closePrices[index]
-                            )).ToList();
-
-                        return historicalData;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid data in the response.");
-                        return new List<(DateTime, decimal)>();
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Failed to fetch historical data.");
-                    return new List<(DateTime, decimal)>();
-                }
-            }
-        }
 
 
     }
@@ -148,13 +103,12 @@
             this.baseUrl = "https://www.alphavantage.co/query";
         }
 
-        public async Task<List<StockData2>> FetchDailyStockDataForLast300Days(string symbol)
+        public async Task<List<StockData2>> FetchStockData(string symbol)
         {
             List<StockData2> allStockData = new List<StockData2>();
-
-            int dataFetched = 0;
-            string function = "TIME_SERIES_DAILY";
+            string function = "TIME_SERIES_WEEKLY";
             string url = $"{baseUrl}?function={function}&symbol={symbol}&apikey={apiKey}&outputsize=full";
+            int count = 0;
 
             using (HttpClient client = new HttpClient())
             {
@@ -164,19 +118,20 @@
 
                     JObject data = JObject.Parse(response);
 
-                    if (data.ContainsKey("Time Series (Daily)"))
+                    if (data.ContainsKey("Weekly Time Series"))
                     {
-                        var timeSeries = data["Time Series (Daily)"] as JObject;
+                        var timeSeries = data["Weekly Time Series"] as JObject;
+
                         if (timeSeries != null)
                         {
-                            foreach (var dayData in timeSeries.Properties())
+                            foreach (var entry in timeSeries.Properties())
                             {
-                                if (dataFetched >= 300) break;
-
-                                string date = dayData.Name; 
+                                if (count >= 150) break;
+                                string date = entry.Name;
                                 DateTime dateTime = DateTime.Parse(date);
 
-                                var values = dayData.Value as JObject;
+                                var values = entry.Value as JObject;
+
                                 if (values != null)
                                 {
                                     double open = Convert.ToDouble(values["1. open"]);
@@ -194,15 +149,14 @@
                                         Close = close,
                                         Volume = volume
                                     });
-
-                                    dataFetched++;
+                                    count++;
                                 }
                             }
                         }
                     }
                     else
                     {
-                        Console.WriteLine("The JSON response does not contain 'Time Series (Daily)' data.");
+                        Console.WriteLine("The JSON response does not contain 'Weekly Time Series' data.");
                     }
                 }
                 catch (Exception ex)
