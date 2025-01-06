@@ -134,10 +134,10 @@
 
                                 if (values != null)
                                 {
-                                    double open = Convert.ToDouble(values["1. open"]);
-                                    double high = Convert.ToDouble(values["2. high"]);
-                                    double low = Convert.ToDouble(values["3. low"]);
-                                    double close = Convert.ToDouble(values["4. close"]);
+                                    decimal open = Convert.ToDecimal(values["1. open"]);
+                                    decimal high = Convert.ToDecimal(values["2. high"]);
+                                    decimal low = Convert.ToDecimal(values["3. low"]);
+                                    decimal close = Convert.ToDecimal(values["4. close"]);
                                     long volume = Convert.ToInt64(values["5. volume"]);
 
                                     allStockData.Add(new StockData2
@@ -172,10 +172,10 @@
         public class StockData2
         {
             public DateTime Date { get; set; }
-            public double Open { get; set; }
-            public double High { get; set; }
-            public double Low { get; set; }
-            public double Close { get; set; }
+            public decimal Open { get; set; }
+            public decimal High { get; set; }
+            public decimal Low { get; set; }
+            public decimal Close { get; set; }
             public long Volume { get; set; }
         }
     }

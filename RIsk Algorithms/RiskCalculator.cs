@@ -1,23 +1,23 @@
 ﻿using APIcalls;
 using StockProSim.Data;
 using static APIcalls.AlphaVantage;
-namespace RIsk_Algorithms
+namespace Risk_Algorithms
 {
     public class RiskCalculator
     {
         public RiskCalculator() { }
-        public async Task<double> StockVariance(string symbol)
+        public async Task<decimal> StockVariance(string symbol)
         {
             string apiKey = "MUY2SK806D7KE5WM";
 
             AlphaVantage alphaVantage = new AlphaVantage(apiKey);
             List<StockData2> stockDataList = await alphaVantage.FetchStockData(symbol);
 
-            double total = 0;
-            double average = 0;
+            decimal total = 0;
+            decimal average = 0;
             int count = 0;
-            double variance = 0;
-            double tempVar = 0;
+            decimal variance = 0;
+            decimal tempVar = 0;
 
             foreach (var stockData in stockDataList)
             {
@@ -32,7 +32,7 @@ namespace RIsk_Algorithms
             variance = 1/(count-1) * tempVar;
             return variance;
         }
-        public async Task<double> StockCovariance(string symbol1,string symbol2)
+        public async Task<decimal> StockCovariance(string symbol1,string symbol2)
         {
             string apiKey = "MUY2SK806D7KE5WM";
 
@@ -40,14 +40,14 @@ namespace RIsk_Algorithms
             List<StockData2> stockDataList1 = await alphaVantage.FetchStockData(symbol1);
             List<StockData2> stockDataList2 = await alphaVantage.FetchStockData(symbol2);
 
-            double total1 = 0;
-            double total2 = 0;
-            double average1 = 0;
-            double average2;
+            decimal total1 = 0;
+            decimal total2 = 0;
+            decimal average1 = 0;
+            decimal average2;
             int count = 0;
-            double Covariance = 0;
-            double tempVar1 = 0;
-            double tempVar2 = 0;
+            decimal Covariance = 0;
+            decimal tempVar1 = 0;
+            decimal tempVar2 = 0;
 
             foreach (var stockData in stockDataList1)
             {

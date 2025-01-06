@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
+using APIcalls;
 
 
 namespace StockProSim.Data
@@ -209,6 +210,21 @@ namespace StockProSim.Data
             }
 
             return trades;
+        }
+
+        public async Task<decimal> GetProfits()
+        {
+            decimal profits = 0;
+            List<TradeHistory> trade = await GetTradeHistoryAsync();
+            APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
+            foreach (var trades in trade)
+            {
+                trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker);
+                trades.PriceChange = trades.CurrentPrice - trades.PriceBought;
+                trades.TradeValue = trades.CurrentPrice * trades.Quantity;
+                profits = profits + trades.PriceChange * trades.Quantity;
+            }
+            return profits;
         }
 
     }
