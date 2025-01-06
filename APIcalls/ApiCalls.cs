@@ -107,31 +107,26 @@
         {
             List<StockData2> allStockData = new List<StockData2>();
             string function = "TIME_SERIES_WEEKLY";
-            string url = $"{baseUrl}?function={function}&symbol={symbol}&apikey={apiKey}&outputsize=full";
-            int count = 0;
+            string url = $"{baseUrl}?function={function}&symbol={symbol}&apikey={apiKey}&outputsize=compact";
 
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
                     string response = await client.GetStringAsync(url);
-
                     JObject data = JObject.Parse(response);
 
                     if (data.ContainsKey("Weekly Time Series"))
                     {
                         var timeSeries = data["Weekly Time Series"] as JObject;
-
                         if (timeSeries != null)
                         {
                             foreach (var entry in timeSeries.Properties())
                             {
-                                if (count >= 150) break;
                                 string date = entry.Name;
                                 DateTime dateTime = DateTime.Parse(date);
 
                                 var values = entry.Value as JObject;
-
                                 if (values != null)
                                 {
                                     decimal open = Convert.ToDecimal(values["1. open"]);
@@ -149,7 +144,6 @@
                                         Close = close,
                                         Volume = volume
                                     });
-                                    count++;
                                 }
                             }
                         }
@@ -157,16 +151,18 @@
                     else
                     {
                         Console.WriteLine("The JSON response does not contain 'Weekly Time Series' data.");
+                        Console.WriteLine(response);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    Console.WriteLine($"Error fetching stock data for {symbol}: {ex.Message}");
                 }
             }
 
             return allStockData;
         }
+
 
 
         public class StockData2

@@ -1,5 +1,6 @@
 ﻿using StockProSim.Data;
 using APIcalls;
+using RiskCalculations;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
@@ -21,7 +22,7 @@ namespace NEA_first_draft
             {
                 Console.WriteLine(item);
             }
-            string apiKey = "MUY2SK806D7KE5WM";
+            string apiKey = "JBO21UGR4BKV1WQ5";
 
             AlphaVantage alphaVantage = new AlphaVantage(apiKey);
             string symbol = "AAPL";
@@ -34,6 +35,8 @@ namespace NEA_first_draft
                 count ++;
             }
             Console.WriteLine(count);
+            RiskCalculator rc = new RiskCalculator();
+            Console.WriteLine(rc.StockVariance("AAPL"));
         }
     }
 }

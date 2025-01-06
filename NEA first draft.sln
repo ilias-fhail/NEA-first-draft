@@ -14,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp1", "..\BlazorApp1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIcalls", "APIcalls\APIcalls.csproj", "{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RIsk Algorithms", "RIsk Algorithms\RIsk Algorithms.csproj", "{FDA740D9-61FA-48F4-9E72-B0D1F3A54663}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiskCalculations", "RiskCalculations\RiskCalculations.csproj", "{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,10 +38,10 @@ Global
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FDA740D9-61FA-48F4-9E72-B0D1F3A54663}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FDA740D9-61FA-48F4-9E72-B0D1F3A54663}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FDA740D9-61FA-48F4-9E72-B0D1F3A54663}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FDA740D9-61FA-48F4-9E72-B0D1F3A54663}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

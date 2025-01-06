@@ -1,0 +1,138 @@
+﻿using APIcalls;
+using StockProSim.Data;
+using static APIcalls.AlphaVantage;
+namespace RiskCalculations
+{
+    public class RiskCalculator
+    {
+        public RiskCalculator() { }
+        public async Task<decimal> StockVariance(string symbol)
+        {
+            string apiKey = "JBO21UGR4BKV1WQ5";
+
+            AlphaVantage alphaVantage = new AlphaVantage(apiKey);
+            List<StockData2> stockDataList = await alphaVantage.FetchStockData(symbol);
+
+            decimal total = 0;
+            decimal average = 0;
+            int count = 0;
+            decimal variance = 0;
+            decimal tempVar = 0;
+
+            foreach (var stockData in stockDataList)
+            {
+                total = total + stockData.Close;
+                count++;
+            }
+            if (count > 1)
+            {
+                average = total / count;
+            }
+            foreach (var stockData in stockDataList)
+            {
+                tempVar = tempVar + ((stockData.Close - average) * (stockData.Close - average));
+            }
+            if (count > 1)
+            {
+                variance = 1 / (count - 1) * tempVar;
+            }
+            return variance;
+        }
+        public async Task<decimal> StockCovariance(string symbol1, string symbol2)
+        {
+            string apiKey = "JBO21UGR4BKV1WQ5";
+
+            AlphaVantage alphaVantage = new AlphaVantage(apiKey);
+            List<StockData2> stockDataList1 = await alphaVantage.FetchStockData(symbol1);
+            List<StockData2> stockDataList2 = await alphaVantage.FetchStockData(symbol2);
+
+            decimal total1 = 0;
+            decimal total2 = 0;
+            decimal average1 = 0;
+            decimal average2 = 0;
+            int count = 0;
+            decimal Covariance = 0;
+            decimal tempVar1 = 0;
+            decimal tempVar2 = 0;
+
+            foreach (var stockData in stockDataList1)
+            {
+                total1 = total1 + stockData.Close;
+                count++;
+            }
+            if (count > 1)
+            {
+                average1 = total1 / count;
+            }
+            foreach (var stockData in stockDataList1)
+            {
+                tempVar1 = tempVar1 + ((stockData.Close - average1) * (stockData.Close - average1));
+            }
+            foreach (var stockData in stockDataList2)
+            {
+                total2 = total2 + stockData.Close;
+            }
+            if (count > 1)
+            {
+                average2 = total2 / count;
+            }
+            foreach (var stockData in stockDataList2)
+            {
+                tempVar2 = tempVar2 + ((stockData.Close - average2) * (stockData.Close - average2));
+            }
+            if (count > 1)
+            {
+                Covariance = 1 / (count - 1) * tempVar1 * tempVar2;
+            }
+            return Covariance;
+        }
+        public async Task<decimal> Portfolio_Variance(List<TradeHistory> trade)
+        {
+            decimal total = 0;
+            decimal tempVar1 = 0;
+            decimal tempVar2 = 0;
+            decimal PortfolioVariance = 0;
+            APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
+            foreach (var trades in trade)
+            {
+                trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker);
+                trades.PriceChange = trades.CurrentPrice - trades.PriceBought;
+                trades.TradeValue = trades.CurrentPrice * trades.Quantity;
+                total = trades.TradeValue + total;
+            }
+            foreach (var trades in trade)
+            {
+                trades.TradeWeight = trades.TradeValue / total;
+            }
+            foreach (var trades in trade)
+            {
+                tempVar1 = tempVar1 + trades.TradeWeight * trades.TradeWeight * await StockVariance(trades.StockTicker);
+            }
+            for (int i = 0; i < trade.Count; i++)
+            {
+                for (int j = 0; j < trade.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        tempVar2 = tempVar2 + (trade[i].TradeWeight * trade[j].TradeWeight * await StockCovariance(trade[i].StockTicker, trade[j].StockTicker));
+                    }
+                }
+            }
+
+            PortfolioVariance = tempVar1 + 2 * tempVar2;
+            return PortfolioVariance;
+        }
+        public async Task<decimal> GetVAR(List<TradeHistory> trades)
+        {
+            decimal VAR = 0;
+            decimal total = 0;
+            foreach (var trade in trades)
+            {
+                total = total + trade.TradeValue;
+            }
+            VAR = 2 * total * await Portfolio_Variance(trades); //2 is the confiddence index - can be changed.
+            return VAR;
+        }
+
+    }
+}
