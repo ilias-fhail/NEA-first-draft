@@ -74,6 +74,9 @@ namespace RIsk_Algorithms
         public async Task<decimal> Portfolio_Variance(List<TradeHistory> trade)
         {
             decimal total = 0;
+            decimal tempVar1 = 0;
+            decimal tempVar2 = 0;
+            decimal PortfolioVariance = 0;
             APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
             foreach (var trades in trade)
             {
@@ -82,6 +85,27 @@ namespace RIsk_Algorithms
                 trades.TradeValue = trades.CurrentPrice * trades.Quantity;
                 total = trades.TradeValue + total;
             }
+            foreach (var trades in trade)
+            {
+                trades.TradeWeight = trades.TradeValue / total;
+            }
+            foreach (var trades in trade)
+            {
+                tempVar1 = tempVar1 + trades.TradeWeight * trades.TradeWeight * Convert.ToDecimal(StockVariance(trades.StockTicker));
+            }
+            for (int i = 0; i < trade.Count ; i++) 
+            {
+                for (int j = 0; j < trade.Count; j++)
+                {
+                    if(i != j)
+                    {
+                        tempVar2 = tempVar2 + (trade[i].TradeWeight * trade[j].TradeWeight * Convert.ToDecimal(StockCovariance(trade[i].StockTicker, trade[j].StockTicker)));
+                    }
+                }
+            }
+
+            PortfolioVariance = tempVar1 + 2 * tempVar2;
+            return PortfolioVariance;
         }
 
 

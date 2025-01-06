@@ -221,6 +221,7 @@ namespace StockProSim.Data
         public decimal PriceChange { get; set; }
         public int Quantity { get; set; }
         public decimal TradeValue { get; set; }
+        public decimal TradeWeight { get; set; }
     }
 
 }
