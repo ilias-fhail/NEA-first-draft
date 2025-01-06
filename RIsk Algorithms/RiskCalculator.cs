@@ -107,7 +107,17 @@ namespace RIsk_Algorithms
             PortfolioVariance = tempVar1 + 2 * tempVar2;
             return PortfolioVariance;
         }
-
+        public async Task<decimal> GetVAR(List <TradeHistory> trades)
+        {
+            decimal VAR = 0;
+            decimal total = 0;
+            foreach (var trade in trades)
+            {
+                total = total + trade.TradeValue;
+            }
+            VAR = 2 * total * Convert.ToDecimal(Portfolio_Variance(trades)); //2 is the confiddence index - can be changed.
+            return VAR;
+        }
 
     }
 }
