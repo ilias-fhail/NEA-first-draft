@@ -34,7 +34,6 @@ namespace NEA_first_draft
                 count ++;
             }
             Console.WriteLine(count);
-            Console.WriteLine(await StockVariance("AAPL"));
         }
     }
 }
