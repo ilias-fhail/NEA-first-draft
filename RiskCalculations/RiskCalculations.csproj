@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="IgniteUI.Blazor.Trial" Version="24.2.52" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\APIcalls\APIcalls.csproj" />
     <ProjectReference Include="..\StockProSim.Data\StockProSim.Data.csproj" />
   </ItemGroup>

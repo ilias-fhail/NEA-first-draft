@@ -22,7 +22,7 @@ namespace NEA_first_draft
             {
                 Console.WriteLine(item);
             }
-            string apiKey = "JBO21UGR4BKV1WQ5";
+            string apiKey = "BGJXL2TUCOT3RB2K";
 
             AlphaVantage alphaVantage = new AlphaVantage(apiKey);
             string symbol = "AAPL";
