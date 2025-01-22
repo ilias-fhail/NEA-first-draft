@@ -24,7 +24,7 @@ namespace StockProSim.Data
                 connection.ConnectionString = _connectionString;
                 connection.Open();
                 SqlCommand command = connection.CreateCommand();
-                command.CommandText = "Select UserFirstName from dbo.Client";
+                command.CommandText = "Select Username from dbo.User";
                 var dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
@@ -34,64 +34,50 @@ namespace StockProSim.Data
             }
             return names;
         }
-
-        public void AddUserName(string userName)
+        public async Task AddToWatchlist(string ticker, int userID)
         {
-            using (SqlConnection connection = new SqlConnection())
-            {
-                connection.ConnectionString = _connectionString;
-                connection.Open();
-                SqlCommand command = connection.CreateCommand();
-                command.CommandText = "insert into dbo.Client (UserFirstName) VALUES (@Name)";
-                var nameParameter = command.Parameters.Add("@Name", SqlDbType.Text);
-                nameParameter.Value = userName;
-                command.ExecuteNonQuery();
-            }
-        }
-        public async Task AddToWatchlist(string ticker)
-        {
-            if (string.IsNullOrWhiteSpace(ticker))
-                throw new ArgumentException("Ticker cannot be null or empty.", nameof(ticker));
-
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
                 using (SqlCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "INSERT INTO dbo.Watch_List (StockTicker) VALUES (@Ticker)";
+                    command.CommandText = "INSERT INTO dbo.Watch_List (StockTicker, UserID) VALUES (@Ticker, @UserID)";
                     command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
+                    command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
                     await command.ExecuteNonQueryAsync();
                 }
             }
         }
 
-        public async Task RemoveFromWatchlist(string ticker)
-        {
-            if (string.IsNullOrWhiteSpace(ticker))
-                throw new ArgumentException("Ticker cannot be null or empty.", nameof(ticker));
 
+        public async Task RemoveFromWatchlist(string ticker, int userID)
+        {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
                 using (SqlCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Ticker";
+                    command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Ticker AND UserID = @UserID";
                     command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
+                    command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
                     await command.ExecuteNonQueryAsync();
                 }
             }
         }
 
-        public async Task<List<string>> GetWatchlistAsync()
+
+        public async Task<List<string>> GetWatchlistAsync(int userID)
         {
             List<string> watchlist = new List<string>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                string query = "SELECT StockTicker FROM dbo.Watch_List";
+                string query = "SELECT StockTicker FROM dbo.Watch_List WHERE UserID = @UserID";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+                    command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
+
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
@@ -104,52 +90,58 @@ namespace StockProSim.Data
 
             return watchlist;
         }
-        public async Task BuyStockAsync(string ticker, decimal priceBought, decimal currentPrice, decimal priceChange, int quantity)
+
+        public async Task BuyStockAsync(string ticker, decimal priceBought, decimal currentPrice, decimal priceChange, int quantity, int userID)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
 
-                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);
                 checkCommand.Parameters.AddWithValue("@Ticker", ticker);
+                checkCommand.Parameters.AddWithValue("@UserID", userID);
 
                 var result = await checkCommand.ExecuteScalarAsync();
 
                 if (result != null)
                 {
                     var updateCommand = new SqlCommand(
-                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @PriceBought WHERE StockTicker = @Ticker",
+                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @PriceBought WHERE StockTicker = @Ticker AND UserID = @UserID",
                         connection);
                     updateCommand.Parameters.AddWithValue("@Ticker", ticker);
                     updateCommand.Parameters.AddWithValue("@Quantity", quantity);
                     updateCommand.Parameters.AddWithValue("@PriceBought", currentPrice);
+                    updateCommand.Parameters.AddWithValue("@UserID", userID);
 
                     await updateCommand.ExecuteNonQueryAsync();
                 }
                 else
                 {
                     var insertCommand = new SqlCommand(
-                        "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity)",
+                        "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity, UserID) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity, @UserID)",
                         connection);
                     insertCommand.Parameters.AddWithValue("@Ticker", ticker);
                     insertCommand.Parameters.AddWithValue("@PriceBought", priceBought);
                     insertCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
                     insertCommand.Parameters.AddWithValue("@PriceChange", priceChange);
                     insertCommand.Parameters.AddWithValue("@Quantity", quantity);
+                    insertCommand.Parameters.AddWithValue("@UserID", userID);
 
                     await insertCommand.ExecuteNonQueryAsync();
                 }
             }
         }
 
-        public async Task SellStockAsync(string ticker, int quantity)
+
+        public async Task SellStockAsync(string ticker, int quantity, int userID)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
 
-                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);
                 checkCommand.Parameters.AddWithValue("@Ticker", ticker);
+                checkCommand.Parameters.AddWithValue("@UserID", userID);
 
                 var result = await checkCommand.ExecuteScalarAsync();
 
@@ -163,18 +155,20 @@ namespace StockProSim.Data
 
                     if (quantity == currentQuantity)
                     {
-                        var deleteCommand = new SqlCommand("DELETE FROM dbo.TradeHistory WHERE StockTicker = @Ticker", connection);
+                        var deleteCommand = new SqlCommand("DELETE FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);
                         deleteCommand.Parameters.AddWithValue("@Ticker", ticker);
+                        deleteCommand.Parameters.AddWithValue("@UserID", userID);
 
                         await deleteCommand.ExecuteNonQueryAsync();
                     }
                     else
                     {
                         var updateCommand = new SqlCommand(
-                            "UPDATE dbo.TradeHistory SET Quantity = Quantity - @Quantity WHERE StockTicker = @Ticker",
+                            "UPDATE dbo.TradeHistory SET Quantity = Quantity - @Quantity WHERE StockTicker = @Ticker AND UserID = @UserID",
                             connection);
                         updateCommand.Parameters.AddWithValue("@Ticker", ticker);
                         updateCommand.Parameters.AddWithValue("@Quantity", quantity);
+                        updateCommand.Parameters.AddWithValue("@UserID", userID);
 
                         await updateCommand.ExecuteNonQueryAsync();
                     }
@@ -185,7 +179,8 @@ namespace StockProSim.Data
                 }
             }
         }
-        public async Task<List<TradeHistory>> GetTradeHistoryAsync()
+
+        public async Task<List<TradeHistory>> GetTradeHistoryAsync(int userID)
         {
             List<TradeHistory> trades = new List<TradeHistory>();
 
@@ -193,7 +188,9 @@ namespace StockProSim.Data
             {
                 await connection.OpenAsync();
 
-                var command = new SqlCommand("SELECT * FROM dbo.TradeHistory", connection);
+                var command = new SqlCommand("SELECT * FROM dbo.TradeHistory WHERE UserID = @UserID", connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
                 var reader = await command.ExecuteReaderAsync();
 
                 while (await reader.ReadAsync())
@@ -213,6 +210,7 @@ namespace StockProSim.Data
 
             return trades;
         }
+
 
         public bool AddUser(string username, string password)
         {
@@ -314,10 +312,10 @@ namespace StockProSim.Data
             return hash == storedHash;
         }
 
-        public async Task<decimal> GetProfits()
+        public async Task<decimal> GetProfits(int userID)
         {
             decimal profits = 0;
-            List<TradeHistory> trade = await GetTradeHistoryAsync();
+            List<TradeHistory> trade = await GetTradeHistoryAsync(userID);
             APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
             foreach (var trades in trade)
             {

@@ -17,7 +17,7 @@ namespace NEA_first_draft
 
             //await APICalls.FetchAndDisplayStockInfo(ticker);
             MyServerDb db = new MyServerDb();
-            var watchlist = await db.GetWatchlistAsync();
+            var watchlist = await db.GetWatchlistAsync(1);
             foreach (var item in watchlist)
             {
                 Console.WriteLine(item);
