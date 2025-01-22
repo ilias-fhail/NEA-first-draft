@@ -1,6 +1,8 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
 using APIcalls;
+using System.Text;
+using System.Security.Cryptography;
 
 
 namespace StockProSim.Data
@@ -210,6 +212,106 @@ namespace StockProSim.Data
             }
 
             return trades;
+        }
+
+        public bool AddUser(string username, string password)
+        {
+            var hashedPassword = HashPassword(password);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                if (IsUsernameExists(username) == false)
+                {
+                    var query = "INSERT INTO Users (Username, PasswordHash) VALUES (@Username, @PasswordHash)";
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Username", username);
+                        command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+
+                        try
+                        {
+                            command.ExecuteNonQuery();
+                            return true;
+                        }
+                        catch (SqlException ex)
+                        {
+                            Console.WriteLine($"Error: {ex.Message}");
+                            return false;
+                        }
+                    }
+                }
+                else { return false; }
+            }
+        }
+
+        public bool IsUsernameExists(string username)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var query = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    var count = (int)command.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+        }
+
+        public bool ValidateUser(string username, string password)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var query = "SELECT PasswordHash FROM Users WHERE Username = @Username";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    var storedPasswordHash = command.ExecuteScalar() as string;
+                    if (storedPasswordHash == null)
+                    {
+                        return false;
+                    }
+
+                    return VerifyPassword(password, storedPasswordHash);
+                }
+            }
+        }
+        public int GetUserID(string username)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var query = "SELECT userID FROM Users WHERE Username = @Username";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+
+                    var result = command.ExecuteScalar();
+                        return Convert.ToInt32(result);
+                }
+            }
+        }
+
+
+        private string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
+        private bool VerifyPassword(string password, string storedHash)
+        {
+            var hash = HashPassword(password);
+            return hash == storedHash;
         }
 
         public async Task<decimal> GetProfits()

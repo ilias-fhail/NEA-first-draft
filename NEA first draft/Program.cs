@@ -83,6 +83,27 @@ namespace NEA_first_draft
                 total += item;
             }
             Console.WriteLine(total / closeValues.Count);
+
+            if (db.AddUser("testuser", "testpassword"))
+            {
+                Console.WriteLine("User added successfully!");
+            }
+
+            // Check if a username exists
+            if (db.IsUsernameExists("testuser"))
+            {
+                Console.WriteLine("Username exists!");
+            }
+
+            // Validate a username and password
+            if (db.ValidateUser("testuser", "testpassword"))
+            {
+                Console.WriteLine("Login successful!");
+            }
+            else
+            {
+                Console.WriteLine("Invalid username or password.");
+            }
         }
     }
 }
