@@ -1,5 +1,6 @@
 ﻿using APIcalls;
 using StockProSim.Data;
+using System.ComponentModel.DataAnnotations.Schema;
 using static APIcalls.AlphaVantage;
 namespace RiskCalculations
 {
@@ -11,14 +12,27 @@ namespace RiskCalculations
 
         public async Task<List<List<decimal>>> FetchClosingPrices(List<TradeHistory> symbols)
         {
-            AlphaVantage alphaVantage = new AlphaVantage(_apiKey);
+            MyServerDb databse = new MyServerDb();
             var allClosingPrices = new List<List<decimal>>();
 
             foreach (var symbol in symbols)
             {
-                var stockData = await alphaVantage.FetchStockData(symbol.StockTicker);
-                var closingPrices = stockData.Select(sd => sd.Close).ToList();
-                allClosingPrices.Add(closingPrices);
+                if (await databse.DataExists(symbol.StockTicker) == true) 
+                {
+                    if (await databse.IsDataWeekOld(symbol.StockTicker) == true)
+                    {
+                        databse.DeleteData(symbol.StockTicker);
+                        var stockData = await PrepareStockData(symbol.StockTicker);
+                        databse.AddData(stockData);
+                    }
+                }
+                else
+                {
+                    var stockData = await PrepareStockData(symbol.StockTicker);
+                    databse.AddData(stockData);
+                }
+                var ClosingPrices = await databse.GetData(symbol.StockTicker);
+                allClosingPrices.Add(ClosingPrices);
             }
 
             return allClosingPrices;
@@ -98,5 +112,23 @@ namespace RiskCalculations
             decimal portfolioVariance = await PortfolioVariance(trades, closingPrices);
             return 2 * total * portfolioVariance; // 2 is the confidence index
         }
+        public async Task<List<StockEntry>> PrepareStockData(string ticker)
+        {
+            AlphaVantage alphaVantage = new AlphaVantage(_apiKey);
+            var stockData = await alphaVantage.FetchStockData(ticker);
+
+            DateTime today = DateTime.Today;
+
+            var formattedData = stockData.Select(data => new StockEntry
+            {
+                Ticker = ticker,
+                Date = today,
+                ClosePrice = data.Close
+            }).ToList();
+
+            return formattedData;
+        }
+
+
     }
 }

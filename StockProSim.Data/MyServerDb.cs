@@ -326,7 +326,96 @@ namespace StockProSim.Data
             }
             return profits;
         }
+        public async Task AddData(List<StockEntry> stockEntries)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "INSERT INTO StockData (Ticker, Date, Price) VALUES (@Ticker, @Date, @Price)";
 
+                foreach (var stockEntry in stockEntries)
+                {
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Ticker", stockEntry.Ticker);
+                        command.Parameters.AddWithValue("@Date", stockEntry.Date);
+                        command.Parameters.AddWithValue("@Price", stockEntry.ClosePrice);
+                        await command.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+        }
+
+
+        public async Task DeleteData(string ticker)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "DELETE FROM StockData WHERE Ticker = @Ticker";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Ticker", ticker);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<bool> DataExists(string ticker)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "SELECT COUNT(1) FROM StockData WHERE Ticker = @Ticker";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Ticker", ticker);
+                    int count = (int)await command.ExecuteScalarAsync();
+                    return count > 0;
+                }
+            }
+        }
+
+        public async Task<bool> IsDataWeekOld(string ticker)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "SELECT MAX(Date) FROM StockData WHERE Ticker = @Ticker";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Ticker", ticker);
+                    var result = await command.ExecuteScalarAsync();
+                    if (result != DBNull.Value && result is DateTime lastDate)
+                    {
+                        return (DateTime.UtcNow - lastDate).TotalDays > 7;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        public async Task<List<decimal>> GetData(string ticker)
+        {
+            var priceList = new List<decimal>();
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = "SELECT Price FROM StockData WHERE Ticker = @Ticker ORDER BY Date";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Ticker", ticker);
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            priceList.Add(reader.GetDecimal(0));
+                        }
+                    }
+                }
+            }
+            return priceList;
+        }
     }
     public class TradeHistory
     {
@@ -339,5 +428,10 @@ namespace StockProSim.Data
         public decimal TradeValue { get; set; }
         public decimal TradeWeight { get; set; }
     }
-
+    public class StockEntry
+    {
+        public string Ticker { get; set; }
+        public DateTime Date { get; set; }
+        public decimal ClosePrice { get; set; }
+    }
 }
