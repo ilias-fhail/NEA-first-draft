@@ -121,8 +121,12 @@
                         var timeSeries = data["Weekly Time Series"] as JObject;
                         if (timeSeries != null)
                         {
+                            int count = 0;
+
                             foreach (var entry in timeSeries.Properties())
                             {
+                                if (count >= 100) break;
+
                                 string date = entry.Name;
                                 DateTime dateTime = DateTime.Parse(date);
 
@@ -144,6 +148,8 @@
                                         Close = close,
                                         Volume = volume
                                     });
+
+                                    count++;
                                 }
                             }
                         }
@@ -162,8 +168,6 @@
 
             return allStockData;
         }
-
-
 
         public class StockData2
         {

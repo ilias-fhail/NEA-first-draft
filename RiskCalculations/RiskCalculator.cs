@@ -19,8 +19,10 @@ namespace RiskCalculations
             {
                 if (await databse.DataExists(symbol.StockTicker) == true) 
                 {
+                    Console.WriteLine("symbol exists in Database");
                     if (await databse.IsDataWeekOld(symbol.StockTicker) == true)
                     {
+                        Console.WriteLine("data is a week old");
                         databse.DeleteData(symbol.StockTicker);
                         var stockData = await PrepareStockData(symbol.StockTicker);
                         databse.AddData(stockData);
@@ -28,6 +30,7 @@ namespace RiskCalculations
                 }
                 else
                 {
+                    Console.WriteLine("symbol does not exist adding it");
                     var stockData = await PrepareStockData(symbol.StockTicker);
                     databse.AddData(stockData);
                 }
@@ -40,13 +43,19 @@ namespace RiskCalculations
 
         public decimal StockVariance(List<decimal> closingPrices)
         {
-            int count = closingPrices.Count;
+            if (closingPrices.Count < 2) return 0;
+
+            // Calculate returns
+            List<decimal> returns = new List<decimal>();
+            for (int i = 1; i < closingPrices.Count; i++)
+            {
+                returns.Add((closingPrices[i] - closingPrices[i - 1]) / closingPrices[i - 1]);
+            }
+
+            int count = returns.Count;
             if (count < 2) return 0;
-
-            decimal total = closingPrices.Sum();
-            decimal average = total / count;
-
-            decimal variance = closingPrices.Sum(price => (price - average) * (price - average));
+            decimal average = returns.Average();
+            decimal variance = returns.Sum(r => (r - average) * (r - average));
             return variance / (count - 1);
         }
 
@@ -55,17 +64,29 @@ namespace RiskCalculations
             int count = Math.Min(prices1.Count, prices2.Count);
             if (count < 2) return 0;
 
-            decimal average1 = prices1.Take(count).Average();
-            decimal average2 = prices2.Take(count).Average();
-
-            decimal covariance = 0;
-            for (int i = 0; i < count; i++)
+            List<decimal> returns1 = new List<decimal>();
+            List<decimal> returns2 = new List<decimal>();
+            for (int i = 1; i < count; i++)
             {
-                covariance += (prices1[i] - average1) * (prices2[i] - average2);
+                returns1.Add((prices1[i] - prices1[i - 1]) / prices1[i - 1]);
+                returns2.Add((prices2[i] - prices2[i - 1]) / prices2[i - 1]);
             }
 
-            return covariance / (count - 1);
+            int returnCount = Math.Min(returns1.Count, returns2.Count);
+            if (returnCount < 2) return 0;
+
+            decimal average1 = returns1.Average();
+            decimal average2 = returns2.Average();
+
+            decimal covariance = 0;
+            for (int i = 0; i < returnCount; i++)
+            {
+                covariance += (returns1[i] - average1) * (returns2[i] - average2);
+            }
+
+            return covariance / (returnCount - 1);
         }
+
         public async Task<decimal> PortfolioVariance(List<TradeHistory> trades, List<List<decimal>> closingPrices)
         {
             decimal total = 0;
@@ -93,12 +114,9 @@ namespace RiskCalculations
 
             for (int i = 0; i < trades.Count; i++)
             {
-                for (int j = 0; j < trades.Count; j++)
+                for (int j = i + 1; j < trades.Count; j++)
                 {
-                    if (i != j)
-                    {
-                        tempVar2 += trades[i].TradeWeight * trades[j].TradeWeight * StockCovariance(closingPrices[i], closingPrices[j]);
-                    }
+                    tempVar2 += trades[i].TradeWeight * trades[j].TradeWeight * StockCovariance(closingPrices[i], closingPrices[j]);
                 }
             }
 
@@ -110,7 +128,7 @@ namespace RiskCalculations
             decimal total = trades.Sum(trade => trade.TradeValue);
             List<List<decimal>> closingPrices = await FetchClosingPrices(trades);
             decimal portfolioVariance = await PortfolioVariance(trades, closingPrices);
-            return 2 * total * portfolioVariance; // 2 is the confidence index
+            return Convert.ToDecimal(Math.Round(2.33 * Convert.ToDouble(total) * Math.Sqrt(Convert.ToDouble(portfolioVariance)), 2)); // 2.33 is the confidence index for 99%
         }
         public async Task<List<StockEntry>> PrepareStockData(string ticker)
         {
@@ -128,7 +146,5 @@ namespace RiskCalculations
 
             return formattedData;
         }
-
-
     }
 }
