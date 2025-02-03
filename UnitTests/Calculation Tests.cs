@@ -125,7 +125,7 @@ namespace UnitTests
                         }
                         else
                         {
-                            Console.WriteLine($"Failed to parse value");
+                            Console.WriteLine("Failed to parse value");
                         }
                     }
                 }
@@ -163,7 +163,7 @@ namespace UnitTests
                         }
                         else
                         {
-                            Console.WriteLine($"Failed to parse value");
+                            Console.WriteLine("Failed to parse value");
                         }
                     }
                 }
@@ -192,7 +192,7 @@ namespace UnitTests
                         }
                         else
                         {
-                            Console.WriteLine($"Failed to parse value");
+                            Console.WriteLine("Failed to parse value");
                         }
                     }
                 }
