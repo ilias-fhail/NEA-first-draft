@@ -416,6 +416,68 @@ namespace StockProSim.Data
             }
             return priceList;
         }
+
+        public void AddProfit(DateTime date, decimal number, int userID)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string checkQuery = "SELECT COUNT(*) FROM Profits WHERE RecordDate = @RecordDate AND UserID = @UserID";
+                using (var checkCommand = new SqlCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@RecordDate", date);
+                    checkCommand.Parameters.AddWithValue("@UserID", userID);
+
+                    int count = (int)checkCommand.ExecuteScalar();
+
+                    if (count == 0)
+                    {
+                        string insertQuery = "INSERT INTO Profits (RecordDate, Value, UserID) VALUES (@RecordDate, @Value, @UserID)";
+                        using (var insertCommand = new SqlCommand(insertQuery, connection))
+                        {
+                            insertCommand.Parameters.AddWithValue("@RecordDate", date);
+                            insertCommand.Parameters.AddWithValue("@Value", number);
+                            insertCommand.Parameters.AddWithValue("@UserID", userID);
+
+                            insertCommand.ExecuteNonQuery();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"A record with the date {date:yyyy-MM-dd} already exists for UserID {userID}.");
+                    }
+                }
+            }
+        }
+
+        public List<ProfitPoint> GetAllProfits(int userID)
+        {
+            var profits = new List<ProfitPoint>();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var command = new SqlCommand("SELECT * FROM Profits WHERE UserID = @UserID", connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        profits.Add(new ProfitPoint
+                        {
+                            Date = reader.GetDateTime(reader.GetOrdinal("RecordDate")),
+                            Value = reader.GetDecimal(reader.GetOrdinal("Value"))
+                        });
+                    }
+                }
+            }
+
+            return profits;
+        }
+
     }
     public class TradeHistory
     {
@@ -434,4 +496,10 @@ namespace StockProSim.Data
         public DateTime Date { get; set; }
         public decimal ClosePrice { get; set; }
     }
+    public class ProfitPoint
+    {
+        public DateTime Date { get; set; }
+        public decimal Value { get; set; }
+    }
+
 }
