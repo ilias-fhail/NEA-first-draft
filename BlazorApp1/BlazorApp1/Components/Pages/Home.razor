@@ -1,0 +1,17 @@
+﻿@inject AuthenticationService AuthService
+@page "/Home"
+
+<PageTitle>Home</PageTitle>
+
+<h1>Welcome back to your portolio.</h1>
+
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
+    }
+}
+

@@ -1,0 +1,78 @@
+﻿@page "/Chart"
+@rendermode InteractiveServer
+@using StockProSim.Data
+@inject MyServerDb Database
+@inject AuthenticationService authservice
+
+<h2>Portolio Graph</h2>
+<div class="container-fluid overflow-x-auto">
+    <LineChart @ref="lineChart" Width="800" />
+</div>
+
+@code {
+    private LineChart lineChart = default!;
+    private LineChartOptions lineChartOptions = default!;
+    private ChartData chartData = default!;
+    private Random random = new();
+    private int datasetsCount;
+    private int labelsCount;
+    // test change
+
+    protected override void OnInitialized()
+    {
+        lineChartOptions = new()
+            {
+                IndexAxis = "x",
+                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                Responsive = true,
+            };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            chartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
+            await lineChart.InitializeAsync(chartData, lineChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+        await PlotProfitsAsync();
+        await PlotProfitsAsync();
+    }
+
+    private async Task PlotProfitsAsync()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        var profitData = Database.GetAllProfits(userID);
+
+        var labels = new List<string>();
+        var data = new List<double?>();
+
+        foreach (var profit in profitData)
+        {
+            labels.Add(profit.Date.ToString("yyyy-MM-dd"));
+            data.Add((double?)profit.Value);
+        }
+
+        chartData = new ChartData
+            {
+                Labels = labels,
+                Datasets = new List<IChartDataset>
+            {
+                new LineChartDataset
+                {
+                    Label = "Profit",
+                    Data = data,
+                    BackgroundColor = "rgba(75, 192, 192, 0.2)",
+                    BorderColor = "rgba(75, 192, 192, 1)",
+                    PointRadius = new List<double> { 5 },
+                    PointHoverRadius = new List<double> { 8 },
+                }
+            }
+            };
+
+        await lineChart.UpdateValuesAsync(chartData);
+    }
+
+
+}

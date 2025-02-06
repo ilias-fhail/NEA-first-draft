@@ -1,0 +1,150 @@
+﻿@page "/Trade"
+@using System.Net.Http.Json
+@using StockProSim.Data
+@using APIcalls
+@using RiskCalculations
+@inject APICalls ApiCalls
+@inject HttpClient Http
+@inject MyServerDb Database
+@inject NavigationManager Navigation
+@inject RiskCalculator Riskcalculator
+@inject AuthenticationService authservice
+@rendermode InteractiveServer
+<PageTitle>Trade</PageTitle>
+
+<h1>Trade</h1>
+
+@if (tradeHistory == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Stock Ticker</th>
+                <th>Price Bought (USD)</th>
+                <th>Current Price (USD)</th>
+                <th>Price Change</th>
+                <th>Quantity</th>
+                <th>Trade Value (USD)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var trade in tradeHistory)
+            {
+                <tr>
+                    <td>@trade.StockTicker</td>
+                    <td>@trade.PriceBought</td>
+                    <td>@trade.CurrentPrice</td>
+                    <td>@trade.PriceChange</td>
+                    <td>@trade.Quantity</td>
+                    <td>@trade.TradeValue</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Trade Profits: @tradeProfits</h2>
+<h3> Value at risk: @VAR</h3>
+
+<div>
+    <input type="text" @bind="newTicker" placeholder="Enter stock ticker" />
+    <input type="number" @bind="quantity" placeholder="Quantity" />
+    <button class="btn btn-primary" @onclick="BuyStock">Buy</button>
+    <button class="btn btn-danger" @onclick="SellStock">Sell</button>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
+}
+
+@code {
+    private List<TradeHistory>? tradeHistory;
+    private decimal tradeProfits = 0;
+    private string newTicker = string.Empty;
+    private int quantity = 0;
+    private string errorMessage = string.Empty;
+    private decimal VAR = 0;
+    private DateTime currentDate = DateTime.Today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        tradeHistory = await Database.GetTradeHistoryAsync(userID);
+        foreach (var trades in tradeHistory)
+        {
+            trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker);
+            trades.PriceChange = trades.CurrentPrice - trades.PriceBought;
+            trades.TradeValue = trades.CurrentPrice * trades.Quantity;
+        }
+        tradeProfits = await Database.GetProfits(userID);
+        Database.AddProfit(currentDate, tradeProfits, userID);
+
+        VAR = await Riskcalculator.GetVAR(tradeHistory);
+    }
+
+    private async Task BuyStock()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        errorMessage = string.Empty;
+
+        if (quantity <= 0)
+        {
+            errorMessage = "Quantity must be greater than zero for buying.";
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(newTicker))
+        {
+            var stockData = await ApiCalls.FetchStockInfoAsync(newTicker);
+            if (stockData != null)
+            {
+                await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID);
+                tradeHistory = await Database.GetTradeHistoryAsync(userID);
+
+                tradeProfits = await Database.GetProfits(userID);
+                Database.AddProfit(currentDate, tradeProfits, userID);
+                VAR = await Riskcalculator.GetVAR(tradeHistory);
+            }
+            else
+            {
+                errorMessage = "Failed to fetch stock data.";
+            }
+        }
+        else
+        {
+            errorMessage = "Stock ticker cannot be empty.";
+        }
+    }
+
+    private async Task SellStock()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        errorMessage = string.Empty;
+
+        if (quantity <= 0)
+        {
+            errorMessage = "Quantity must be greater than zero for selling.";
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(newTicker))
+        {
+            await Database.SellStockAsync(newTicker, quantity, userID);
+            tradeHistory = await Database.GetTradeHistoryAsync(userID);
+
+            tradeProfits = await Database.GetProfits(userID);
+            Database.AddProfit(currentDate, tradeProfits, userID);
+            VAR = await Riskcalculator.GetVAR(tradeHistory);
+        }
+        else
+        {
+            errorMessage = "Stock ticker cannot be empty.";
+        }
+    }
+}
+

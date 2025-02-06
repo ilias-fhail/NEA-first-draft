@@ -1,0 +1,102 @@
+﻿@page "/WatchList"
+@using System.Net.Http.Json
+@using Newtonsoft.Json;
+@using StockProSim.Data
+@using APIcalls
+@inject APICalls ApiCalls
+@inject HttpClient Http
+@inject MyServerDb Database
+@inject NavigationManager Navigation
+@inject AuthenticationService authservice
+@attribute [StreamRendering]
+@rendermode InteractiveServer
+
+<PageTitle>Stock Watch List</PageTitle>
+
+<h1>Stock Watch List</h1>
+
+<p>A Table containing stocks you are tracking.</p>
+
+@if (stockdata == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Stock Ticker</th>
+                <th>Current Price (USD)</th>
+                <th>Open Price (USD)</th>
+                <th>Price change</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var data in stockdata)
+            {
+                <tr>
+                    <td>@data.Ticker</td>
+                    <td>@data.CurrentPrice</td>
+                    <td>@data.OpenPrice</td>
+                    <td>@data.PriceChange</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<input type="text" @bind="newTicker" placeholder="Enter stock ticker" />
+<button class="btn btn-primary" @onclick="AddTickerAsync">Add</button>
+<button class="btn btn-danger" @onclick="RemoveTickerAsync">Remove</button>
+
+@code {
+    private StockData[]? stockdata;
+    private string newTicker = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        var watchlist = await Database.GetWatchlistAsync(userID);
+        var stockDataList = new List<StockData>();
+
+        foreach (var ticker in watchlist)
+        {
+            var stockData = await ApiCalls.FetchStockInfoAsync(ticker);
+            if (stockData != null)
+            {
+                stockDataList.Add(stockData);
+            }
+        }
+
+        stockdata = stockDataList.ToArray();
+    }
+
+    private async Task AddTickerAsync()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        if (!string.IsNullOrWhiteSpace(newTicker))
+        {
+            await Database.AddToWatchlist(newTicker,userID);
+            newTicker = string.Empty;
+            ReloadPage();
+        }
+    }
+
+    private async Task RemoveTickerAsync()
+    {
+        int userID = await authservice.GetUserIdAsync();
+        if (!string.IsNullOrWhiteSpace(newTicker))
+        {
+            await Database.RemoveFromWatchlist(newTicker,userID);
+            newTicker = string.Empty;
+            ReloadPage();
+        }
+    }
+    private void ReloadPage()
+    {
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}
+
+

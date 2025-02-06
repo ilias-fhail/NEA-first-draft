@@ -1,0 +1,106 @@
+﻿@page "/"
+@using StockProSim.Data
+@inject NavigationManager NavigationManager
+@inject AuthenticationService AuthService
+@inject MyServerDb Database
+@rendermode InteractiveServer
+<h3>@(IsLogin ? "Login" : "Register")</h3>
+
+<div>
+    @if (IsLogin)
+    {
+        <div>
+            <label>Username:</label>
+            <input type="text" @bind="Username" />
+            <br />
+            <label>Password:</label>
+            <input type="password" @bind="Password" />
+            <br />
+            <button @onclick="LoginUser">Login</button>
+        </div>
+    }
+    else
+    {
+        <div>
+            <label>Full Name:</label>
+            <input type="text" @bind="FullName" />
+            <br />
+            <label>Username:</label>
+            <input type="text" @bind="Username" />
+            <br />
+            <label>Password:</label>
+            <input type="password" @bind="Password" />
+            <br />
+            <label>Confirm Password:</label>
+            <input type="password" @bind="ConfirmPassword" />
+            <br />
+            <button @onclick="RegisterUser">Register</button>
+        </div>
+    }
+</div>
+
+<div>
+    <p>
+        @(IsLogin ? "Don't have an account?" : "Already have an account?")
+        <a href="javascript:void(0)" @onclick="ToggleAuthMode">
+            @(IsLogin ? "Register here" : "Login here")
+        </a>
+    </p>
+</div>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p style="color:red;">@ErrorMessage</p>
+}
+
+@code {
+    private bool IsLogin = true;
+    private string FullName { get; set; }
+    private string Username { get; set; }
+    private string Password { get; set; }
+    private string ConfirmPassword { get; set; }
+    private string ErrorMessage { get; set; }
+
+    private void ToggleAuthMode()
+    {
+        IsLogin = !IsLogin;
+        ErrorMessage = string.Empty;
+        FullName = Username = Password = ConfirmPassword = string.Empty;
+    }
+
+    private async Task LoginUser()
+    {
+        if (Database.ValidateUser(Username,Password) == true)
+        {
+            int userId = Database.GetUserID(Username);
+            await AuthService.LoginAsync(userId);
+            NavigationManager.NavigateTo("/Home");
+        }
+        else
+        {
+            ErrorMessage = "Invalid login credentials.";
+        }
+    }
+
+    private async Task RegisterUser()
+    {
+        if (Password != ConfirmPassword)
+        {
+            ErrorMessage = "Passwords do not match.";
+            return;
+        }
+        if (Database.IsUsernameExists(Username) == false)
+        {
+            Database.AddUser(Username, Password);
+            ErrorMessage = "Registration successful! You can now log in.";
+            ToggleAuthMode();
+        }
+        else
+        {
+            ErrorMessage = "Username already exists.";
+            return;
+        }
+    }
+
+}
+

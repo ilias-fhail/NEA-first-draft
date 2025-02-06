@@ -1,0 +1,71 @@
+﻿@inject AuthenticationService AuthService
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">StockProSim</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        @if (IsAuthenticated == false)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Log In
+            </NavLink>
+            </div>
+        }
+        else
+        {
+        
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Home" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Chart">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chart
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Trade">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Trade
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="WatchList">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Watch List
+            </NavLink>
+        </div>
+        }
+    </nav>
+</div>
+@code {
+    private bool IsAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsAuthenticated = await AuthService.IsAuthenticatedAsync();
+        AuthService.OnAuthenticationStateChanged += UpdateAuthState;
+    }
+
+    private async void UpdateAuthState()
+    {
+        IsAuthenticated = await AuthService.IsAuthenticatedAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthenticationStateChanged -= UpdateAuthState;
+    }
+}
+
+
+

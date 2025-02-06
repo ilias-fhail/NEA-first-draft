@@ -4,19 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NEA first draft", "NEA first draft\NEA first draft.csproj", "{9B12C0F8-5BD9-411B-8936-2A0775B53632}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E4B27C01-9FB7-4305-B574-19CA5E132B7B} = {E4B27C01-9FB7-4305-B574-19CA5E132B7B}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockProSim.Data", "StockProSim.Data\StockProSim.Data.csproj", "{4FE79B10-3A54-4BFF-A789-AC4039B736D6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp1", "..\BlazorApp1\BlazorApp1\BlazorApp1.csproj", "{E4B27C01-9FB7-4305-B574-19CA5E132B7B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIcalls", "APIcalls\APIcalls.csproj", "{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RiskCalculations", "RiskCalculations\RiskCalculations.csproj", "{BF9EB566-3D8D-47B6-ADA4-D2E9C69A67B3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E4E78E81-97F1-4528-915F-6C4695858AC3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp1", "BlazorApp1\BlazorApp1\BlazorApp1.csproj", "{2D61696E-0C91-4307-BC00-E26A032071D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,10 +29,6 @@ Global
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FE79B10-3A54-4BFF-A789-AC4039B736D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E4B27C01-9FB7-4305-B574-19CA5E132B7B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5AB36A0-BBAE-454A-963E-2BA4BA1270C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -48,6 +41,10 @@ Global
 		{E4E78E81-97F1-4528-915F-6C4695858AC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4E78E81-97F1-4528-915F-6C4695858AC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4E78E81-97F1-4528-915F-6C4695858AC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D61696E-0C91-4307-BC00-E26A032071D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D61696E-0C91-4307-BC00-E26A032071D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D61696E-0C91-4307-BC00-E26A032071D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D61696E-0C91-4307-BC00-E26A032071D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
