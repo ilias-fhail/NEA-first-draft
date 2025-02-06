@@ -15,9 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NEA first draft\APIcalls\APIcalls.csproj" />
-    <ProjectReference Include="..\..\NEA first draft\RiskCalculations\RiskCalculations.csproj" />
-    <ProjectReference Include="..\..\NEA first draft\StockProSim.Data\StockProSim.Data.csproj" />
+    <ProjectReference Include="..\..\APIcalls\APIcalls.csproj" />
+    <ProjectReference Include="..\..\NEA first draft\NEA first draft.csproj" />
+    <ProjectReference Include="..\..\RiskCalculations\RiskCalculations.csproj" />
+    <ProjectReference Include="..\..\StockProSim.Data\StockProSim.Data.csproj" />
   </ItemGroup>
 	
 </Project>
