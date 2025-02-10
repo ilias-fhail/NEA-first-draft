@@ -17,9 +17,10 @@
         {
             <li>
                 <a href="@article.Url" target="_blank">@article.Headline</a>
+                <br />
+                <img src="@article.Image" alt="News Image" style="width: 250px; height: auto; border-radius: 8px;" />
                 <p>@article.Summary</p>
                 <p><i>Source: @article.Source</i></p>
-                <p><i>Published: @article.PublishedAt.ToString("yyyy-MM-dd")</i></p>
             </li>
         }
     </ul>
@@ -37,5 +38,16 @@ else
         var isAuthenticated = await AuthService.IsAuthenticatedAsync();
         Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
         newsArticles = await StockNewsService.GetStockNewsAsync();
+        if (newsArticles != null)
+        {
+            foreach (var article in newsArticles)
+            {
+                Console.WriteLine($"Image URL: {article.Image}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("No news articles found.");
+        }
     }
 }

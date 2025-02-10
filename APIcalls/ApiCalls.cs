@@ -37,10 +37,9 @@
     {
         public string Headline { get; set; }
         public string Source { get; set; }
-        public DateTime PublishedAt { get; set; }
         public string Summary { get; set; }
         public string Url { get; set; }
-        public string ImageUrl { get; set; }
+        public string Image { get; set; }
     }
 
 
@@ -204,7 +203,7 @@
             string url = $"https://finnhub.io/api/v1/news?category=general&token={_apiKey}";
 
             var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
-            return response ?? new List<NewsArticle>();
+            return response?.Take(10).ToList() ?? new List<NewsArticle>();
         }
     }
 }
