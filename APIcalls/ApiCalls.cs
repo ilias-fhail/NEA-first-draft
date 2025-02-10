@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net.Http;
+    using System.Net.Http.Json;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -32,6 +33,16 @@
 
         public decimal PriceChange => (CurrentPrice - OpenPrice);
     }
+    public class NewsArticle
+    {
+        public string Headline { get; set; }
+        public string Source { get; set; }
+        public DateTime PublishedAt { get; set; }
+        public string Summary { get; set; }
+        public string Url { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
 
     public class APICalls
     {
@@ -43,7 +54,6 @@
             _baseApi = "https://finnhub.io/api/v1";
             _apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0";
         }
-
         public async Task<StockData?> FetchStockInfoAsync(string ticker)
         {
             using (HttpClient client = new HttpClient())
@@ -89,7 +99,6 @@
                 else { return 0; }
             }
         }
-
 
     }
     public class AlphaVantage
@@ -177,6 +186,25 @@
             public decimal Low { get; set; }
             public decimal Close { get; set; }
             public long Volume { get; set; }
+        }
+    }
+    public class StockNewsService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _apiKey;
+
+        public StockNewsService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+            _apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0";
+        }
+
+        public async Task<List<NewsArticle>> GetStockNewsAsync()
+        {
+            string url = $"https://finnhub.io/api/v1/news?category=general&token={_apiKey}";
+
+            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
+            return response ?? new List<NewsArticle>();
         }
     }
 }

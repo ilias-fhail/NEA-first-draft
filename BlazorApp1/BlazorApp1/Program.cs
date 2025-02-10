@@ -5,6 +5,7 @@ using StockProSim.Data;
 using RiskCalculations;
 using Infragistics;
 using IgniteUI.Blazor.Controls;
+using static APIcalls.AlphaVantage;
 
 
 namespace BlazorApp1
@@ -24,6 +25,8 @@ namespace BlazorApp1
             builder.Services.AddScoped<RiskCalculator>();
             builder.Services.AddSingleton<AuthenticationService>();
             builder.Services.AddBlazorBootstrap();
+            builder.Services.AddScoped<StockNewsService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

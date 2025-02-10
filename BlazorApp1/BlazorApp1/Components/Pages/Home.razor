@@ -1,17 +1,41 @@
-﻿@inject AuthenticationService AuthService
-@page "/Home"
+﻿@page "/Home"
+@using APIcalls
+@inject StockNewsService StockNewsService
+@inject AuthenticationService AuthService
+
 
 <PageTitle>Home</PageTitle>
 
 <h1>Welcome back to your portolio.</h1>
 
+<h2>Latest Stock Market News</h2>
 
+@if (newsArticles != null)
+{
+    <ul>
+        @foreach (var article in newsArticles)
+        {
+            <li>
+                <a href="@article.Url" target="_blank">@article.Headline</a>
+                <p>@article.Summary</p>
+                <p><i>Source: @article.Source</i></p>
+                <p><i>Published: @article.PublishedAt.ToString("yyyy-MM-dd")</i></p>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
+    private List<NewsArticle> newsArticles;
+
     protected override async Task OnInitializedAsync()
     {
         var isAuthenticated = await AuthService.IsAuthenticatedAsync();
         Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
+        newsArticles = await StockNewsService.GetStockNewsAsync();
     }
 }
-
