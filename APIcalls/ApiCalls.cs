@@ -203,7 +203,19 @@
             string url = $"https://finnhub.io/api/v1/news?category=general&token={_apiKey}";
 
             var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
-            return response?.Take(10).ToList() ?? new List<NewsArticle>();
+            return response?.Take(5).ToList() ?? new List<NewsArticle>();
         }
+        public async Task<NewsArticle?> GetStockNewsByTickerAsync(string ticker)
+        {
+            string fromDate = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-dd");
+            string toDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            string url = $"https://finnhub.io/api/v1/company-news?symbol={ticker}&from={fromDate}&to={toDate}&token={_apiKey}";
+
+            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
+            return response?.FirstOrDefault();
+        }
+
+
     }
 }

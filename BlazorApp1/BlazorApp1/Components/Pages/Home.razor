@@ -1,8 +1,9 @@
 ﻿@page "/Home"
 @using APIcalls
+@using StockProSim.Data
 @inject StockNewsService StockNewsService
 @inject AuthenticationService AuthService
-
+@inject MyServerDb Database
 
 <PageTitle>Home</PageTitle>
 
@@ -30,11 +31,46 @@ else
     <p>Loading...</p>
 }
 
+<h2>Latest Watch List News</h2>
+@if (WatchlistArticles != null)
+{
+    <ul>
+        @foreach (var article in WatchlistArticles)
+        {
+            <li>
+                <a href="@article.Url" target="_blank">@article.Headline</a>
+                <br />
+                <img src="@article.Image" alt="News Image" style="width: 250px; height: auto; border-radius: 8px;" />
+                <p>@article.Summary</p>
+                <p><i>Source: @article.Source</i></p>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+
 @code {
     private List<NewsArticle> newsArticles;
+    private List<NewsArticle> WatchlistArticles = new List<NewsArticle>();
+
 
     protected override async Task OnInitializedAsync()
     {
+        int userID = await AuthService.GetUserIdAsync();
+        var watchlist = await Database.GetWatchlistAsync(userID);
+
+        foreach (var ticker in watchlist)
+        {
+            var article = await StockNewsService.GetStockNewsByTickerAsync(ticker);
+            if (article != null)
+            {
+                WatchlistArticles.Add(article);
+            }
+        }
         var isAuthenticated = await AuthService.IsAuthenticatedAsync();
         Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
         newsArticles = await StockNewsService.GetStockNewsAsync();
