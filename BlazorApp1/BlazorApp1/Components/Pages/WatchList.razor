@@ -48,11 +48,17 @@ else
     </table>
 }
 
-<input type="text" @bind="newTicker" placeholder="Enter stock ticker" />
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color: red;">@errorMessage</p>
+}
+
+<input type="text" @bind="newTicker" placeholder="Enter a stock ticker" style="text-transform: uppercase;" />
 <button class="btn btn-primary" @onclick="AddTickerAsync">Add</button>
 <button class="btn btn-danger" @onclick="RemoveTickerAsync">Remove</button>
 
 @code {
+    private string errorMessage = string.Empty;
     private StockData[]? stockdata;
     private string newTicker = string.Empty;
 
@@ -77,22 +83,48 @@ else
     private async Task AddTickerAsync()
     {
         int userID = await authservice.GetUserIdAsync();
-        if (!string.IsNullOrWhiteSpace(newTicker))
+        var watchlist = await Database.GetWatchlistAsync(userID);
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(newTicker))
         {
-            await Database.AddToWatchlist(newTicker,userID);
-            newTicker = string.Empty;
-            ReloadPage();
+            errorMessage = "Stock ticker cannot be empty.";
+            return;
         }
+        if (watchlist.Contains(newTicker.ToUpper()))
+        {
+            errorMessage = "The stock is already on the watchlist.";
+            return;
+        }
+        await Database.AddToWatchlist(newTicker.ToUpper(), userID);
+        newTicker = string.Empty;
+        ReloadPage();
     }
+
 
     private async Task RemoveTickerAsync()
     {
         int userID = await authservice.GetUserIdAsync();
+        var watchlist = await Database.GetWatchlistAsync(userID);
         if (!string.IsNullOrWhiteSpace(newTicker))
         {
-            await Database.RemoveFromWatchlist(newTicker,userID);
-            newTicker = string.Empty;
-            ReloadPage();
+            if (watchlist.Contains(newTicker.ToUpper()))
+            {
+                await Database.RemoveFromWatchlist(newTicker.ToUpper(), userID);
+                newTicker = string.Empty;
+                ReloadPage();
+            }
+            else
+            {
+                errorMessage = "The stock is not on the watchlist.";
+                return;
+            }
+
+        }
+        else
+        {
+            errorMessage = "Stock ticker cannot be empty.";
+            return;
         }
     }
     private void ReloadPage()
