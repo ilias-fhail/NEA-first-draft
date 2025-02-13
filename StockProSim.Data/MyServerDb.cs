@@ -135,6 +135,8 @@ namespace StockProSim.Data
 
         public async Task SellStockAsync(string ticker, int quantity, int userID)
         {
+            APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
+            decimal currentP = await ApiCalls.FetchCurrentPriceAsync(ticker);
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
@@ -152,6 +154,17 @@ namespace StockProSim.Data
                     {
                         throw new InvalidOperationException("Cannot sell more than available quantity.");
                     }
+                    var getPriceCommand = new SqlCommand("SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);
+                    getPriceCommand.Parameters.AddWithValue("@Ticker", ticker);
+                    getPriceCommand.Parameters.AddWithValue("@UserID", userID);
+
+                    var price = await getPriceCommand.ExecuteScalarAsync();
+                    decimal priceChange = currentP - (decimal)price;
+                    Console.WriteLine(priceChange);
+                    decimal totalProfit = priceChange * quantity;
+                    Console.WriteLine(quantity + " and " + totalProfit);
+
+                    await AddBaseProfitAsync(totalProfit, userID);
 
                     if (quantity == currentQuantity)
                     {
@@ -291,7 +304,7 @@ namespace StockProSim.Data
 
 
                     var result = command.ExecuteScalar();
-                        return Convert.ToInt32(result);
+                    return Convert.ToInt32(result);
                 }
             }
         }
@@ -314,7 +327,7 @@ namespace StockProSim.Data
 
         public async Task<decimal> GetProfits(int userID)
         {
-            decimal profits = 0;
+            decimal profits = await GetBaseProfitAsync(userID);
             List<TradeHistory> trade = await GetTradeHistoryAsync(userID);
             APICalls ApiCalls = new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0");
             foreach (var trades in trade)
@@ -478,6 +491,70 @@ namespace StockProSim.Data
             return profits;
         }
 
+        public async Task AddBaseProfitAsync(decimal baseProfit, int userID)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string checkQuery = "SELECT COUNT(*) FROM BaseProfits WHERE UserID = @UserID";
+                using (SqlCommand checkCommand = new SqlCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@UserID", userID);
+                    int count = (int)await checkCommand.ExecuteScalarAsync();
+
+                    if (count > 0)
+                    {
+                        string updateQuery = "UPDATE BaseProfits SET BaseProfit = @BaseProfit WHERE UserID = @UserID";
+                        using (SqlCommand updateCommand = new SqlCommand(updateQuery, connection))
+                        {
+                            updateCommand.Parameters.AddWithValue("@BaseProfit", baseProfit);
+                            updateCommand.Parameters.AddWithValue("@UserID", userID);
+                            await updateCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                    else
+                    {
+                        string insertQuery = "INSERT INTO BaseProfits (BaseProfit, UserID) VALUES (@BaseProfit, @UserID)";
+                        using (SqlCommand insertCommand = new SqlCommand(insertQuery, connection))
+                        {
+                            insertCommand.Parameters.AddWithValue("@BaseProfit", baseProfit);
+                            insertCommand.Parameters.AddWithValue("@UserID", userID);
+                            await insertCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+        }
+        public async Task<decimal> GetBaseProfitAsync(int userID)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string selectQuery = "SELECT BaseProfit FROM BaseProfits WHERE UserID = @UserID";
+                using (SqlCommand selectCommand = new SqlCommand(selectQuery, connection))
+                {
+                    selectCommand.Parameters.AddWithValue("@UserID", userID);
+                    object result = await selectCommand.ExecuteScalarAsync();
+
+                    if (result != null)
+                    {
+                        return (decimal)result;
+                    }
+                    else
+                    {
+                        string insertQuery = "INSERT INTO BaseProfits (BaseProfit, UserID) VALUES (0, @UserID)";
+                        using (SqlCommand insertCommand = new SqlCommand(insertQuery, connection))
+                        {
+                            insertCommand.Parameters.AddWithValue("@UserID", userID);
+                            await insertCommand.ExecuteNonQueryAsync();
+                        }
+                        return 0;
+                    }
+                }
+            }
+        }
     }
     public class TradeHistory
     {

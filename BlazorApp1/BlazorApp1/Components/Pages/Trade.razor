@@ -55,7 +55,7 @@ else
 <h3> Value at risk: @VAR</h3>
 
 <div>
-    <input type="text" @bind="newTicker" placeholder="Enter a stock ticker" style="text-transform: uppercase;" />
+    <input type="text" @bind="newTicker" @oninput="UpdateTicker" placeholder="Enter stock ticker" />
     <input type="number" @bind="quantity" placeholder="Quantity" />
     <button class="btn btn-primary" @onclick="BuyStock">Buy</button>
     <button class="btn btn-danger" @onclick="SellStock">Sell</button>
@@ -163,6 +163,9 @@ else
             errorMessage = "Stock ticker cannot be empty.";
         }
     }
-
+    private void UpdateTicker(ChangeEventArgs e)
+    {
+        newTicker = e.Value?.ToString()?.ToUpper();
+    }
 }
 
