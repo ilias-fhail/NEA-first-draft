@@ -105,15 +105,29 @@ namespace StockProSim.Data
 
                 if (result != null)
                 {
+                    var getOldValuesCommand = new SqlCommand(
+                        "SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID",
+                        connection);
+                    getOldValuesCommand.Parameters.AddWithValue("@Ticker", ticker);
+                    getOldValuesCommand.Parameters.AddWithValue("@UserID", userID);
+                    var oldpricebought = await getOldValuesCommand.ExecuteScalarAsync();
+
+                    int oldQuantity = (int)result;
+                    decimal oldPriceBought = (decimal)oldpricebought;
+
+                    int totalQuantity = oldQuantity + quantity;
+                    decimal newAveragePrice = ((oldQuantity * oldPriceBought) + (quantity * currentPrice)) / totalQuantity;
+
                     var updateCommand = new SqlCommand(
-                        "UPDATE dbo.TradeHistory SET Quantity = Quantity + @Quantity, CurrentPrice = @PriceBought WHERE StockTicker = @Ticker AND UserID = @UserID",
+                        "UPDATE dbo.TradeHistory SET Quantity = @TotalQuantity, PriceBought = @NewAveragePrice WHERE StockTicker = @Ticker AND UserID = @UserID",
                         connection);
                     updateCommand.Parameters.AddWithValue("@Ticker", ticker);
-                    updateCommand.Parameters.AddWithValue("@Quantity", quantity);
-                    updateCommand.Parameters.AddWithValue("@PriceBought", currentPrice);
+                    updateCommand.Parameters.AddWithValue("@TotalQuantity", totalQuantity);
+                    updateCommand.Parameters.AddWithValue("@NewAveragePrice", newAveragePrice);
                     updateCommand.Parameters.AddWithValue("@UserID", userID);
 
                     await updateCommand.ExecuteNonQueryAsync();
+
                 }
                 else
                 {
