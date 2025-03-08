@@ -71,9 +71,13 @@ else
         foreach (var ticker in watchlist)
         {
             var stockData = await ApiCalls.FetchStockInfoAsync(ticker);
-            if (stockData != null)
+            if (stockData.CurrentPrice != 0)
             {
                 stockDataList.Add(stockData);
+            }
+            else
+            {
+                await Database.RemoveFromWatchlist(ticker, userID);
             }
         }
 

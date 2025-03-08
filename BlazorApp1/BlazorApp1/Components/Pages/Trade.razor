@@ -81,6 +81,10 @@ else
         tradeHistory = await Database.GetTradeHistoryAsync(userID);
         foreach (var trades in tradeHistory)
         {
+            if (trades.CurrentPrice == 0)
+            {
+                await Database.SellStockAsync(trades.StockTicker, trades.Quantity, userID);
+            }
             trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker);
             trades.PriceChange = trades.CurrentPrice - trades.PriceBought;
             trades.TradeValue = trades.CurrentPrice * trades.Quantity;
@@ -105,7 +109,7 @@ else
         if (!string.IsNullOrWhiteSpace(newTicker))
         {
             var stockData = await ApiCalls.FetchStockInfoAsync(newTicker);
-            if (stockData != null)
+            if (stockData.CurrentPrice != 0)
             {
                 await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID);
                 tradeHistory = await Database.GetTradeHistoryAsync(userID);
