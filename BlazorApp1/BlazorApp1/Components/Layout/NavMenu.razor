@@ -1,4 +1,6 @@
 ﻿@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -43,6 +45,8 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Watch List
             </NavLink>
         </div>
+
+        <button class="logout-button" @onclick="Logout">Logout</button>
         }
     </nav>
 </div>
@@ -64,6 +68,11 @@
     public void Dispose()
     {
         AuthService.OnAuthenticationStateChanged -= UpdateAuthState;
+    }
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }
 
