@@ -103,48 +103,69 @@ namespace StockProSim.Data
 
                 var result = await checkCommand.ExecuteScalarAsync();
 
-                if (result != null)
+                try
                 {
-                    var getOldValuesCommand = new SqlCommand(
-                        "SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID",
-                        connection);
-                    getOldValuesCommand.Parameters.AddWithValue("@Ticker", ticker);
-                    getOldValuesCommand.Parameters.AddWithValue("@UserID", userID);
-                    var oldpricebought = await getOldValuesCommand.ExecuteScalarAsync();
+                    if (result != null)
+                    {
+                        var getOldValuesCommand = new SqlCommand(
+                            "SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID",
+                            connection);
+                        getOldValuesCommand.Parameters.AddWithValue("@Ticker", ticker);
+                        getOldValuesCommand.Parameters.AddWithValue("@UserID", userID);
+                        var oldpricebought = await getOldValuesCommand.ExecuteScalarAsync();
 
-                    int oldQuantity = (int)result;
-                    decimal oldPriceBought = (decimal)oldpricebought;
+                        int oldQuantity = (int)result;
+                        decimal oldPriceBought = (decimal)oldpricebought;
+                        int maxQuantity = int.MaxValue;
+                        int totalQuantity = oldQuantity + quantity;
+                        if (totalQuantity > maxQuantity)
+                        {
+                            throw new InvalidOperationException($"Quantity cannot exceed {maxQuantity}.");
+                        }
+                        else
+                        {
+                            decimal newAveragePrice = ((oldQuantity * oldPriceBought) + (quantity * currentPrice)) / totalQuantity;
 
-                    int totalQuantity = oldQuantity + quantity;
-                    decimal newAveragePrice = ((oldQuantity * oldPriceBought) + (quantity * currentPrice)) / totalQuantity;
+                            var updateCommand = new SqlCommand(
+                                "UPDATE dbo.TradeHistory SET Quantity = @TotalQuantity, PriceBought = @NewAveragePrice WHERE StockTicker = @Ticker AND UserID = @UserID",
+                                connection);
+                            updateCommand.Parameters.AddWithValue("@Ticker", ticker);
+                            updateCommand.Parameters.AddWithValue("@TotalQuantity", totalQuantity);
+                            updateCommand.Parameters.AddWithValue("@NewAveragePrice", newAveragePrice);
+                            updateCommand.Parameters.AddWithValue("@UserID", userID);
 
-                    var updateCommand = new SqlCommand(
-                        "UPDATE dbo.TradeHistory SET Quantity = @TotalQuantity, PriceBought = @NewAveragePrice WHERE StockTicker = @Ticker AND UserID = @UserID",
-                        connection);
-                    updateCommand.Parameters.AddWithValue("@Ticker", ticker);
-                    updateCommand.Parameters.AddWithValue("@TotalQuantity", totalQuantity);
-                    updateCommand.Parameters.AddWithValue("@NewAveragePrice", newAveragePrice);
-                    updateCommand.Parameters.AddWithValue("@UserID", userID);
+                            await updateCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                    else
+                    {
+                        var insertCommand = new SqlCommand(
+                            "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity, UserID) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity, @UserID)",
+                            connection);
+                        insertCommand.Parameters.AddWithValue("@Ticker", ticker);
+                        insertCommand.Parameters.AddWithValue("@PriceBought", priceBought);
+                        insertCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
+                        insertCommand.Parameters.AddWithValue("@PriceChange", priceChange);
+                        insertCommand.Parameters.AddWithValue("@Quantity", quantity);
+                        insertCommand.Parameters.AddWithValue("@UserID", userID);
 
-                    await updateCommand.ExecuteNonQueryAsync();
-
+                        await insertCommand.ExecuteNonQueryAsync();
+                    }
                 }
-                else
+                catch (SqlException ex)
                 {
-                    var insertCommand = new SqlCommand(
-                        "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity, UserID) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity, @UserID)",
-                        connection);
-                    insertCommand.Parameters.AddWithValue("@Ticker", ticker);
-                    insertCommand.Parameters.AddWithValue("@PriceBought", priceBought);
-                    insertCommand.Parameters.AddWithValue("@CurrentPrice", currentPrice);
-                    insertCommand.Parameters.AddWithValue("@PriceChange", priceChange);
-                    insertCommand.Parameters.AddWithValue("@Quantity", quantity);
-                    insertCommand.Parameters.AddWithValue("@UserID", userID);
-
-                    await insertCommand.ExecuteNonQueryAsync();
+                    if (ex.Number == 547) // Error number for constraint violations
+                    {
+                        throw new InvalidOperationException("The quantity value you are trying to enter is too large or violates a constraint.");
+                    }
+                    else
+                    {
+                        throw new Exception("An error occurred while processing your request.", ex);
+                    }
                 }
             }
         }
+
 
 
         public async Task SellStockAsync(string ticker, int quantity, int userID)

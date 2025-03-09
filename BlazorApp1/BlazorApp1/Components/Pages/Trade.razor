@@ -108,25 +108,47 @@ else
 
         if (!string.IsNullOrWhiteSpace(newTicker))
         {
-            var stockData = await ApiCalls.FetchStockInfoAsync(newTicker);
-            if (stockData.CurrentPrice != 0)
+            try
             {
-                await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID);
-                tradeHistory = await Database.GetTradeHistoryAsync(userID);
+                var stockData = await ApiCalls.FetchStockInfoAsync(newTicker);
 
-                tradeProfits = await Database.GetProfits(userID);
-                Database.AddProfit(currentDate, tradeProfits, userID);
-                VAR = await Riskcalculator.GetVAR(tradeHistory);
+                if (stockData == null)
+                {
+                    errorMessage = "Invalid Stock Ticker.";
+                    return;
+                }
+
+                if (stockData.CurrentPrice != 0)
+                {
+                    try
+                    {
+                        await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        errorMessage = ex.Message;
+                    }
+                    catch (Exception ex)
+                    {
+                        errorMessage = "An unexpected error occurred: " + ex.Message;
+                    }
+                }
+                else
+                {
+                    errorMessage = "Invalid Stock Ticker.";
+                }
             }
-            else
+            catch (System.NullReferenceException ex)
             {
-                errorMessage = "Invalid Stock Ticker.";
+                errorMessage = "Error: Stock data could not be retrieved.";
+                Console.WriteLine(ex.Message);
             }
         }
         else
         {
             errorMessage = "Stock ticker cannot be empty.";
         }
+
     }
 
     private async Task SellStock()
