@@ -8,6 +8,8 @@ using static APIcalls.AlphaVantage;
 
 namespace NEA_first_draft
 {
+
+    // this area is where I have been testing individual functions of my code and their effectiveness. Although it adds no functionality to my actual project it has been an important part of its development.
     class Program
     {
         static async Task Main(string[] args)

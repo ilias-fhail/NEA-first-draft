@@ -7,9 +7,9 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Welcome back to your portolio.</h1>
+<h1>Welcome back to your portfolio.</h1>
 
-<p>Welcome back (username) find below the latest stock market news and inofrmation on the stocks you are watching.</p>
+<p>Welcome back, @username! Find below the latest stock market news and information on the stocks you are watching.</p>
 
 <p>Navigate the application using the toolbar on the left.</p>
 
@@ -60,13 +60,13 @@ else
 @code {
     private List<NewsArticle> newsArticles;
     private List<NewsArticle> WatchlistArticles = new List<NewsArticle>();
-
+    private string username = "";
 
     protected override async Task OnInitializedAsync()
     {
         int userID = await AuthService.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
-
+        username = Database.GetUsername(userID);
         foreach (var ticker in watchlist)
         {
             var article = await StockNewsService.GetStockNewsByTickerAsync(ticker);

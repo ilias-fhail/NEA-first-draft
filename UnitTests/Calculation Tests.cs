@@ -2,11 +2,14 @@
 using RiskCalculations;
 namespace UnitTests
 {
+
+    // my collection of unit tests designed to test the function of the statistical analysis algorithms in the risk calculations class.
+
     [TestClass]
     public class Calculation_Tests
     {
         [TestMethod]
-        public void StockVariance_WithSingleValue()
+        public void StockVariance_WithSingleValue() //tests that if the list is too short it returns 0
         {
             var riskCalculator = new RiskCalculator();
             var closingPrices = new List<decimal> { 100m };
@@ -20,7 +23,7 @@ namespace UnitTests
         public class RiskCalculatorTests
         {
             [TestMethod]
-            public void StockVariance_WithMultipleValues()
+            public void StockVariance_WithMultipleValues()  // checks for a standard variance calculation matching the algorithm
             {
                 var riskCalculator = new RiskCalculator();
                 var closingPrices = new List<decimal> { 100m, 200m, 300m };
@@ -37,7 +40,7 @@ namespace UnitTests
             }
 
             [TestMethod]
-            public void StockCovariance_WithIdenticalValues()
+            public void StockCovariance_WithIdenticalValues() // checking if covariance works with identical data sets incase of any divide by 0 errors
             {
                 var riskCalculator = new RiskCalculator();
                 var prices1 = new List<decimal> { 100m, 200m, 300m };
@@ -58,7 +61,7 @@ namespace UnitTests
             }
 
             [TestMethod]
-            public void StockCovariance_WithDifferentValues()
+            public void StockCovariance_WithDifferentValues() // a standard covariance calculation check
             {
                 var riskCalculator = new RiskCalculator();
                 var prices1 = new List<decimal> { 100m, 200m, 300m };
@@ -77,7 +80,7 @@ namespace UnitTests
             }
 
             [TestMethod]
-            public void StockCovariance_WithMismatchedLengths()
+            public void StockCovariance_WithMismatchedLengths() // checks if it works with lists of different lengths
             {
                 var riskCalculator = new RiskCalculator();
                 var prices1 = new List<decimal> { 100m, 200m };
@@ -97,35 +100,37 @@ namespace UnitTests
             }
         }
 
+        // Here are my tests that use large sets of data to check it works with large quantities of data        
+
         [TestMethod]
         public void StockVariance_WithLargeDataSet()
         {
             var riskCalculator = new RiskCalculator();
-            string filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_data.csv";
+            string filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_data.csv"; //excel spreadsheet file which contains large lists of stock data
             List<decimal> closeValues = new List<decimal>();
-            using (var reader = new StreamReader(filePath))
+            using (var reader = new StreamReader(filePath)) //opening a file reader that closes after use.
             {
                 string? line;
                 bool isHeader = true;
 
-                while ((line = reader.ReadLine()) != null)
+                while ((line = reader.ReadLine()) != null)     // makes sure the file is read until it reaches an empty line
                 {
-                    if (isHeader)
+                    if (isHeader)           // removes the first line which is a header
                     {
                         isHeader = false;
                         continue;
                     }
 
-                    var values = line.Split(',');
+                    var values = line.Split(','); //splits the data by commas
                     if (values.Length > 1)
                     {
-                        if (decimal.TryParse(values[1].Trim('$'), out decimal closeValue))
+                        if (decimal.TryParse(values[1].Trim('$'), out decimal closeValue)) // trys removing dollar signs from the data and then converting them to decimals
                         {
                             closeValues.Add(closeValue);
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse value");
+                            Console.WriteLine("Failed to parse value");  // catches any error with the try parse.
                         }
                     }
                 }
@@ -133,44 +138,44 @@ namespace UnitTests
             var variance = riskCalculator.StockVariance(closeValues);
 
             var expectedVariance = (decimal)0.00035;
-            Assert.AreEqual(expectedVariance, Math.Round(variance, 5));
+            Assert.AreEqual(expectedVariance, Math.Round(variance, 5));  // compares the algorithm value with the value given by excel
         }
         [TestMethod]
         public void StockCovariance_WithLargeDataSet()
         {
             var riskCalculator = new RiskCalculator();
-            string filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_datacopy.csv";
+            string filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_datacopy.csv"; //excel file with one set of stock data
             List<decimal> closeValues = new List<decimal>();
             using (var reader = new StreamReader(filePath))
             {
                 string? line;
                 bool isHeader = true;
 
-                while ((line = reader.ReadLine()) != null)
+                while ((line = reader.ReadLine()) != null) //reads the file until the end
                 {
                     if (isHeader)
-                    {
+                    {                       // removing the header
                         isHeader = false;
                         continue;
                     }
 
-                    var values = line.Split(',');
+                    var values = line.Split(',');   // split the data by commas
                     if (values.Length > 1)
                     {
-                        if (decimal.TryParse(values[1].Trim('$'), out decimal closeValue))
+                        if (decimal.TryParse(values[1].Trim('$'), out decimal closeValue))  // try trim the dollar signs from the data
                         {
                             closeValues.Add(closeValue);
                         }
                         else
                         {
-                            Console.WriteLine("Failed to parse value");
+                            Console.WriteLine("Failed to parse value"); //catch any errors with the try parse converting data to decimals
                         }
                     }
                 }
             }
-            filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_data2.csv";
+            filePath = "C:\\Users\\ilias\\source\\repos\\NEA first draft\\UnitTests\\test_data2.csv"; // excel file with another set of stock data
             List<decimal> closeValues2 = new List<decimal>();
-            using (var reader = new StreamReader(filePath))
+            using (var reader = new StreamReader(filePath)) //repeat of the same code but on a new file
             {
                 string? line;
                 bool isHeader = true;
@@ -200,7 +205,7 @@ namespace UnitTests
             var Covariance = riskCalculator.StockCovariance(closeValues,closeValues2);
 
             var expectedVariance = (decimal)0.00027;
-            Assert.AreEqual(expectedVariance, Math.Round(Covariance, 5));
+            Assert.AreEqual(expectedVariance, Math.Round(Covariance, 5));  //compare the computed value with the value from the spreadsheets.
         }
     }
 }

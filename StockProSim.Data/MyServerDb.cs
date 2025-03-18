@@ -7,41 +7,59 @@ using System.Security.Cryptography;
 
 namespace StockProSim.Data
 {
+
+    // here is all my database code which manages all the data that is inserted, read and deleted from my database.
     public class MyServerDb
     {
         private string _connectionString;
 
         public MyServerDb()
         {
-            _connectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Simulator;Integrated Security=True;TrustServerCertificate=True";
+            _connectionString = "Data Source=ILIAS_LAPTOP;Initial Catalog=Stock Simulator;Integrated Security=True;TrustServerCertificate=True";  // here is the connection string that connects my device to my databse remotely
         }
 
-        public List<string> GetUserNames()
+        public List<string> GetUserNames()  // this function returns a list of usernames who have registerd
         {
             var names = new List<string>();
-            using (SqlConnection connection = new SqlConnection())
+            using (SqlConnection connection = new SqlConnection())  
             {
                 connection.ConnectionString = _connectionString;
-                connection.Open();
+                connection.Open();                                         // opens a temparary connection with the database
                 SqlCommand command = connection.CreateCommand();
-                command.CommandText = "Select Username from dbo.User";
+                command.CommandText = "Select Username from dbo.User";      // select SQL query for returning all the usernames in the user table
                 var dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    var name = dataReader.GetString(0);
-                    names.Add(name);
+                    var name = dataReader.GetString(0);  // gets the first string which is the name
+                    names.Add(name); 
                 }
             }
-            return names;
+            return names; // returning a list of names
         }
-        public async Task AddToWatchlist(string ticker, int userID)
+        public async Task AddToWatchlist(string ticker, int userID) // Inserts a stock ticker into the watch list with the user ID it corresponds to
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
                 using (SqlCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "INSERT INTO dbo.Watch_List (StockTicker, UserID) VALUES (@Ticker, @UserID)";
+                    command.CommandText = "INSERT INTO dbo.Watch_List (StockTicker, UserID) VALUES (@Ticker, @UserID)"; //SQL query for insering into the collumns StockTicker and userID into the Watch_List table
+                    command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker; // fills the paramters of the SQL wuery with the correct variables.
+                    command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
+                    await command.ExecuteNonQueryAsync(); // await for the query to be completed first.
+                }
+            }
+        }
+
+
+        public async Task RemoveFromWatchlist(string ticker, int userID) //removes a stock ticker from the watch list table which corresponds to the correct user ID
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Ticker AND UserID = @UserID"; // SQL query to delete the field from the watch list table where the stock ticker and user ID match
                     command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
                     command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
                     await command.ExecuteNonQueryAsync();
@@ -50,30 +68,14 @@ namespace StockProSim.Data
         }
 
 
-        public async Task RemoveFromWatchlist(string ticker, int userID)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-                using (SqlCommand command = connection.CreateCommand())
-                {
-                    command.CommandText = "DELETE FROM dbo.Watch_List WHERE StockTicker = @Ticker AND UserID = @UserID";
-                    command.Parameters.Add("@Ticker", SqlDbType.NVarChar).Value = ticker;
-                    command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
-        }
-
-
-        public async Task<List<string>> GetWatchlistAsync(int userID)
+        public async Task<List<string>> GetWatchlistAsync(int userID) // fetches a list of tickers that are part of the watch list of a specific user ID
         {
             List<string> watchlist = new List<string>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                string query = "SELECT StockTicker FROM dbo.Watch_List WHERE UserID = @UserID";
+                string query = "SELECT StockTicker FROM dbo.Watch_List WHERE UserID = @UserID"; //SQL query to select all the Stock Ticker collumn values for the fields where the UserID match the userID specified
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.Add("@UserID", SqlDbType.Int).Value = userID;
@@ -82,7 +84,7 @@ namespace StockProSim.Data
                     {
                         while (await reader.ReadAsync())
                         {
-                            watchlist.Add(reader.GetString(0));
+                            watchlist.Add(reader.GetString(0)); // adds each string to the list before it is returned
                         }
                     }
                 }
@@ -91,13 +93,13 @@ namespace StockProSim.Data
             return watchlist;
         }
 
-        public async Task BuyStockAsync(string ticker, decimal priceBought, decimal currentPrice, decimal priceChange, int quantity, int userID)
+        public async Task BuyStockAsync(string ticker, decimal priceBought, decimal currentPrice, decimal priceChange, int quantity, int userID) // this subroutine inserts a field that represents the purchase of a stock linked to a specific user ID
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
 
-                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);
+                var checkCommand = new SqlCommand("SELECT Quantity FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", connection);  // SQL query to select the quanitity column of a field where the stock ticker and user ID match
                 checkCommand.Parameters.AddWithValue("@Ticker", ticker);
                 checkCommand.Parameters.AddWithValue("@UserID", userID);
 
@@ -105,10 +107,10 @@ namespace StockProSim.Data
 
                 try
                 {
-                    if (result != null)
+                    if (result != null) // this checks if the stock already exists in the database as if it does a quanitity will be returned from the previous call. below is the code if it does already exist
                     {
                         var getOldValuesCommand = new SqlCommand(
-                            "SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID",
+                            "SELECT PriceBought FROM dbo.TradeHistory WHERE StockTicker = @Ticker AND UserID = @UserID", // gets the old price the stock was bought to calculate a new average at which the stock has now been bought at
                             connection);
                         getOldValuesCommand.Parameters.AddWithValue("@Ticker", ticker);
                         getOldValuesCommand.Parameters.AddWithValue("@UserID", userID);
@@ -120,14 +122,14 @@ namespace StockProSim.Data
                         int totalQuantity = oldQuantity + quantity;
                         if (totalQuantity > maxQuantity)
                         {
-                            throw new InvalidOperationException($"Quantity cannot exceed {maxQuantity}.");
+                            throw new InvalidOperationException($"Quantity cannot exceed {maxQuantity}."); // check if too much of a stock has been bought that it can no longer be stored as an integer
                         }
                         else
                         {
                             decimal newAveragePrice = ((oldQuantity * oldPriceBought) + (quantity * currentPrice)) / totalQuantity;
 
                             var updateCommand = new SqlCommand(
-                                "UPDATE dbo.TradeHistory SET Quantity = @TotalQuantity, PriceBought = @NewAveragePrice WHERE StockTicker = @Ticker AND UserID = @UserID",
+                                "UPDATE dbo.TradeHistory SET Quantity = @TotalQuantity, PriceBought = @NewAveragePrice WHERE StockTicker = @Ticker AND UserID = @UserID", // update the trade with a new quantity and the updated average price
                                 connection);
                             updateCommand.Parameters.AddWithValue("@Ticker", ticker);
                             updateCommand.Parameters.AddWithValue("@TotalQuantity", totalQuantity);
@@ -140,7 +142,7 @@ namespace StockProSim.Data
                     else
                     {
                         var insertCommand = new SqlCommand(
-                            "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity, UserID) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity, @UserID)",
+                            "INSERT INTO dbo.TradeHistory (StockTicker, PriceBought, CurrentPrice, PriceChange, Quantity, UserID) VALUES (@Ticker, @PriceBought, @CurrentPrice, @PriceChange, @Quantity, @UserID)", // if it doesnt already exist in the trade table insert it from new.
                             connection);
                         insertCommand.Parameters.AddWithValue("@Ticker", ticker);
                         insertCommand.Parameters.AddWithValue("@PriceBought", priceBought);
@@ -154,7 +156,7 @@ namespace StockProSim.Data
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 547) // Error number for constraint violations
+                    if (ex.Number == 547) // Error number for constraint violations. Catching any other errors that deal with numbers being too big that they can no longer be formatted in their current data structures.
                     {
                         throw new InvalidOperationException("The quantity value you are trying to enter is too large or violates a constraint.");
                     }
@@ -342,6 +344,36 @@ namespace StockProSim.Data
                     return Convert.ToInt32(result);
                 }
             }
+        }
+        public string GetUsername(int userId)
+        {
+            string username = null;
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    string query = "SELECT Username FROM Users WHERE UserId = @UserId";
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        var result = command.ExecuteScalar();
+
+                        if (result != null)
+                        {
+                            username = result.ToString();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                }
+            }
+
+            return username ?? "User not found";
         }
 
 
