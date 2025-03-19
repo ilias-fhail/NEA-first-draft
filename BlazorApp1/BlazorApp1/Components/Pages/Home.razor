@@ -5,11 +5,13 @@
 @inject AuthenticationService AuthService
 @inject MyServerDb Database
 
+@* this code is for the home page of my front end *@
+
 <PageTitle>Home</PageTitle>
 
 <h1>Welcome back to your portfolio.</h1>
 
-<p>Welcome back, @username! Find below the latest stock market news and information on the stocks you are watching.</p>
+<p>Welcome back, @username! Find below the latest stock market news and information on the stocks you are watching.</p> @* gives a welcome message with the user's unique username included *@
 
 <p>Navigate the application using the toolbar on the left.</p>
 
@@ -18,7 +20,7 @@
 @if (newsArticles != null)
 {
     <ul>
-        @foreach (var article in newsArticles)
+        @foreach (var article in newsArticles) // formatting and displaying each news article
         {
             <li>
                 <a href="@article.Url" target="_blank">@article.Headline</a>
@@ -32,14 +34,14 @@
 }
 else
 {
-    <p>Loading...</p>
+    <p>Loading...</p> // wait if the news articles sent back no data instead of rendering them.
 }
 
 <h2>Latest Watch List News</h2>
 @if (WatchlistArticles != null)
 {
     <ul>
-        @foreach (var article in WatchlistArticles)
+        @foreach (var article in WatchlistArticles) // formatting and displaying the watch list specific articles
         {
             <li>
                 <a href="@article.Url" target="_blank">@article.Headline</a>
@@ -53,7 +55,7 @@ else
 }
 else
 {
-    <p>No stocks currently being watched</p>
+    <p>No stocks currently being watched</p> // if no stocks are being watched which will give a null value for articles display this
 }
 
 
@@ -62,12 +64,12 @@ else
     private List<NewsArticle> WatchlistArticles = new List<NewsArticle>();
     private string username = "";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() // upon loading get the user ID and username as well as fetch the latest news from both the watch list and general news 
     {
         int userID = await AuthService.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
         username = Database.GetUsername(userID);
-        foreach (var ticker in watchlist)
+        foreach (var ticker in watchlist) // fetching 1 news article per ticker in the watch list
         {
             var article = await StockNewsService.GetStockNewsByTickerAsync(ticker);
             if (article != null)
@@ -75,7 +77,7 @@ else
                 WatchlistArticles.Add(article);
             }
         }
-        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        var isAuthenticated = await AuthService.IsAuthenticatedAsync(); // checking that the user is logged in if they have been navigated to the authentication page
         Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
         newsArticles = await StockNewsService.GetStockNewsAsync();
         if (newsArticles != null)
@@ -87,7 +89,7 @@ else
         }
         else
         {
-            Console.WriteLine("No news articles found.");
+            Console.WriteLine("No news articles found."); // logging to the console if news articles couldn't be found for debugging
         }
     }
 }

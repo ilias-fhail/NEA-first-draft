@@ -10,6 +10,9 @@
 @inject RiskCalculator Riskcalculator
 @inject AuthenticationService authservice
 @rendermode InteractiveServer
+
+@* this code is for my trading page for my front end *@
+
 <PageTitle>Trade</PageTitle>
 
 <h1>Trade</h1>
@@ -18,13 +21,13 @@
 
 <h2>Trade Simulator</h2>
 
-@if (tradeHistory == null)
+@if (tradeHistory == null) // if there is no trade data display that it is still loading
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
+    <table class="table"> @* formatting for the trade table *@
         <thead>
             <tr>
                 <th>Stock Ticker</th>
@@ -36,7 +39,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var trade in tradeHistory)
+            @foreach (var trade in tradeHistory) @* for each trade assign them to a field and then move onto the next row of the table *@
             {
                 <tr>
                     <td>@trade.StockTicker</td>
@@ -51,11 +54,11 @@ else
     </table>
 }
 
-<h2>Trade Profits: @tradeProfits</h2>
+<h2>Trade Profits: @tradeProfits</h2>   @* additional parameters that display profits and risk bound to those variables *@
 <h3> Value at risk: @VAR</h3>
 
 <div>
-    <input type="text" @bind="newTicker" @oninput="UpdateTicker" placeholder="Enter stock ticker" />
+    <input type="text" @bind="newTicker" @oninput="UpdateTicker" placeholder="Enter stock ticker" />        @* binding of the buttons the their relevant functions when called *@
     <input type="number" @bind="quantity" placeholder="Quantity" />
     <button class="btn btn-primary" @onclick="BuyStock">Buy</button>
     <button class="btn btn-danger" @onclick="SellStock">Sell</button>
@@ -75,56 +78,56 @@ else
     private decimal VAR = 0;
     private DateTime currentDate = DateTime.Today;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() // upon loading the page render the table
     {
         int userID = await authservice.GetUserIdAsync();
         tradeHistory = await Database.GetTradeHistoryAsync(userID);
         foreach (var trades in tradeHistory)
         {
-            if (trades.CurrentPrice == 0)
+            if (trades.CurrentPrice == 0) // if the stock has an invalid price sell the trade as the ticker must of been wrong
             {
                 await Database.SellStockAsync(trades.StockTicker, trades.Quantity, userID);
             }
-            trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker);
+            trades.CurrentPrice = await ApiCalls.FetchCurrentPriceAsync(trades.StockTicker); // update the trades with the latest values
             trades.PriceChange = trades.CurrentPrice - trades.PriceBought;
             trades.TradeValue = trades.CurrentPrice * trades.Quantity;
         }
-        tradeProfits = await Database.GetProfits(userID);
+        tradeProfits = await Database.GetProfits(userID); // get the profit value to display
         Database.AddProfit(currentDate, tradeProfits, userID);
 
-        VAR = await Riskcalculator.GetVAR(tradeHistory);
+        VAR = await Riskcalculator.GetVAR(tradeHistory); // get the VAR value to display
     }
 
-    private async Task BuyStock()
+    private async Task BuyStock() // buys an amount of stock for a specified ticker and quntity when the button is pressed
     {
         int userID = await authservice.GetUserIdAsync();
         errorMessage = string.Empty;
 
-        if (quantity <= 0)
+        if (quantity <= 0) // first check for a valid quantity
         {
             errorMessage = "Quantity must be greater than zero for buying.";
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(newTicker))
+        if (!string.IsNullOrWhiteSpace(newTicker)) //check if a valid input has been entered
         {
             try
             {
                 var stockData = await ApiCalls.FetchStockInfoAsync(newTicker);
 
-                if (stockData == null)
+                if (stockData == null) // check that the enterd input returns values when called to an API
                 {
                     errorMessage = "Invalid Stock Ticker.";
                     return;
                 }
 
-                if (stockData.CurrentPrice != 0)
+                if (stockData.CurrentPrice != 0) // check the ticker is valid
                 {
                     try
                     {
-                        await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID);
+                        await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID); // buy the stock and add the trade to the database
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException ex)        // catch any errors that may be thrown 
                     {
                         errorMessage = ex.Message;
                     }
@@ -138,7 +141,7 @@ else
                     errorMessage = "Invalid Stock Ticker.";
                 }
             }
-            catch (System.NullReferenceException ex)
+            catch (System.NullReferenceException ex) // more exception handling that are catching errors with unique log messages
             {
                 errorMessage = "Error: Stock data could not be retrieved.";
                 Console.WriteLine(ex.Message);
@@ -151,30 +154,30 @@ else
 
     }
 
-    private async Task SellStock()
+    private async Task SellStock() // sells an amount of stock for a specified ticker and quantity when the button is pressed
     {
         int userID = await authservice.GetUserIdAsync();
         errorMessage = string.Empty;
 
-        if (quantity <= 0)
+        if (quantity <= 0) // check for a valid quantity
         {
             errorMessage = "Quantity must be greater than zero for selling.";
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(newTicker))
+        if (!string.IsNullOrWhiteSpace(newTicker)) // check that a ticker has been entered 
         {
             try
             {
-                await Database.SellStockAsync(newTicker, quantity, userID);
+                await Database.SellStockAsync(newTicker, quantity, userID); // sell the stock
                 tradeHistory = await Database.GetTradeHistoryAsync(userID);
 
-                tradeProfits = await Database.GetProfits(userID);
+                tradeProfits = await Database.GetProfits(userID); // adjust the VAR and profit values
                 Database.AddProfit(currentDate, tradeProfits, userID);
 
                 VAR = await Riskcalculator.GetVAR(tradeHistory);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException ex)    // catch any exceptions that have been thrown
             {
                 errorMessage = ex.Message;
             }
@@ -189,7 +192,7 @@ else
             errorMessage = "Stock ticker cannot be empty.";
         }
     }
-    private void UpdateTicker(ChangeEventArgs e)
+    private void UpdateTicker(ChangeEventArgs e) // ensures that the stock ticker entered always looks uppercase in the UI
     {
         newTicker = e.Value?.ToString()?.ToUpper();
     }

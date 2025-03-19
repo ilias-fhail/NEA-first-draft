@@ -11,6 +11,8 @@
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 
+@* this code is for the stock watch list page of my front end *@
+
 <PageTitle>Stock Watch List</PageTitle>
 
 <h1>Stock Watch List</h1>
@@ -21,11 +23,11 @@
 
 @if (stockdata == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Loading...</em></p> // whilst the data is still being fetched wait to render the table
 }
 else
 {
-    <table class="table">
+    <table class="table">                   @* formatting for the watch list *@
         <thead>
             <tr>
                 <th>Stock Ticker</th>
@@ -35,7 +37,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var data in stockdata)
+            @foreach (var data in stockdata) // for each object in the list of stocks assign each them a field in the table before moving onto the next row
             {
                 <tr>
                     <td>@data.Ticker</td>
@@ -53,7 +55,7 @@ else
     <p style="color: red;">@errorMessage</p>
 }
 
-<input type="text" @bind="newTicker" @oninput="UpdateTicker" placeholder="Enter stock ticker" />
+<input type="text" @bind="newTicker" @oninput="UpdateTicker" placeholder="Enter stock ticker" />    @* binding all the buttons to call their relavent functions when clicked *@
 <button class="btn btn-primary" @onclick="AddTickerAsync">Add</button>
 <button class="btn btn-danger" @onclick="RemoveTickerAsync">Remove</button>
 
@@ -62,13 +64,13 @@ else
     private StockData[]? stockdata;
     private string newTicker = string.Empty;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() // upon the page loading get the users watched stocks and generate a table
     {
         int userID = await authservice.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
         var stockDataList = new List<StockData>();
 
-        foreach (var ticker in watchlist)
+        foreach (var ticker in watchlist) // for each stock ticker get its stock information from an API call
         {
             var stockData = await ApiCalls.FetchStockInfoAsync(ticker);
             if (stockData.CurrentPrice != 0)
@@ -77,42 +79,42 @@ else
             }
             else
             {
-                await Database.RemoveFromWatchlist(ticker, userID);
+                await Database.RemoveFromWatchlist(ticker, userID); // remove from watchlist if it doesnt have a price
             }
         }
 
         stockdata = stockDataList.ToArray();
     }
 
-    private async Task AddTickerAsync()
+    private async Task AddTickerAsync() // add a stock ticker to the watchlist
     {
         int userID = await authservice.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
         errorMessage = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(newTicker))
+        if (string.IsNullOrWhiteSpace(newTicker)) // check if a valid string was entered
         {
             errorMessage = "Stock ticker cannot be empty.";
             return;
         }
-        if (watchlist.Contains(newTicker.ToUpper()))
+        if (watchlist.Contains(newTicker.ToUpper())) // check it isn't already on the list
         {
             errorMessage = "The stock is already on the watchlist.";
             return;
         }
-        await Database.AddToWatchlist(newTicker.ToUpper(), userID);
+        await Database.AddToWatchlist(newTicker.ToUpper(), userID); // call to add it to the databse
         newTicker = string.Empty;
-        ReloadPage();
+        ReloadPage(); // clear the parameter and reload the page to refresh the table
     }
 
 
-    private async Task RemoveTickerAsync()
+    private async Task RemoveTickerAsync() // remove a stcok ticker from the watchlist
     {
         int userID = await authservice.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
-        if (!string.IsNullOrWhiteSpace(newTicker))
+        if (!string.IsNullOrWhiteSpace(newTicker)) // check that the string is not empty
         {
-            if (watchlist.Contains(newTicker.ToUpper()))
+            if (watchlist.Contains(newTicker.ToUpper())) // check that the stock ticker exists in the list before removing it
             {
                 await Database.RemoveFromWatchlist(newTicker.ToUpper(), userID);
                 newTicker = string.Empty;
@@ -120,22 +122,22 @@ else
             }
             else
             {
-                errorMessage = "The stock is not on the watchlist.";
+                errorMessage = "The stock is not on the watchlist."; // throw an error if it doesn't
                 return;
             }
 
         }
         else
         {
-            errorMessage = "Stock ticker cannot be empty.";
+            errorMessage = "Stock ticker cannot be empty."; // throw an error for an invalid input
             return;
         }
     }
-    private void ReloadPage()
+    private void ReloadPage() // reloads the page to refresh the table
     {
         Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
     }
-    private void UpdateTicker(ChangeEventArgs e)
+    private void UpdateTicker(ChangeEventArgs e) // forces the user to type in uppercase in the UI
     {
         newTicker = e.Value?.ToString()?.ToUpper();
     }

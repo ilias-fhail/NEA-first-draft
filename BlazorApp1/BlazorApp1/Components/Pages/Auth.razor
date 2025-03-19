@@ -4,11 +4,14 @@
 @inject AuthenticationService AuthService
 @inject MyServerDb Database
 @rendermode InteractiveServer
-<h3>@(IsLogin ? "Login" : "Register")</h3>
+
+@* this code is for my login/register page fo my front end *@
+
+<h3>@(IsLogin ? "Login" : "Register")</h3>  @* heading which has 2 states *@
 
 <div>
     @if (IsLogin)
-    {
+    {                                               @* formatting for the log in boxes  and binding them to their variables *@
         <div>
             <label>Username:</label>
             <input type="text" @bind="Username" />
@@ -16,11 +19,11 @@
             <label>Password:</label>
             <input type="password" @bind="Password" />
             <br />
-            <button @onclick="LoginUser">Login</button>
+            <button @onclick="LoginUser">Login</button> @* mapping the button to its function to call when pressed *@
         </div>
     }
     else
-    {
+    {                                                @* formatting for the register boxes and binding them to their variables *@
         <div>
             <label>Full Name:</label>
             <input type="text" @bind="FullName" />
@@ -34,14 +37,14 @@
             <label>Confirm Password:</label>
             <input type="password" @bind="ConfirmPassword" />
             <br />
-            <button @onclick="RegisterUser">Register</button>
+            <button @onclick="RegisterUser">Register</button> @* mapping the button to its function to call when pressed *@
         </div>
     }
 </div>
 
 <div>
     <p>
-        @(IsLogin ? "Don't have an account?" : "Already have an account?")
+        @(IsLogin ? "Don't have an account?" : "Already have an account?") @* formatting the prompt underneath the boxes that lets you switch between regisering or logging in *@
         <a href="javascript:void(0)" @onclick="ToggleAuthMode">
             @(IsLogin ? "Register here" : "Login here")
         </a>
@@ -50,7 +53,7 @@
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
-    <p style="color:red;">@ErrorMessage</p>
+    <p style="color:red;">@ErrorMessage</p> // initialising and formatting the error message
 }
 
 @code {
@@ -61,38 +64,38 @@
     private string ConfirmPassword { get; set; }
     private string ErrorMessage { get; set; }
 
-    private void ToggleAuthMode()
+    private void ToggleAuthMode() // changing between the authentication modes and resetting any paramaters
     {
         IsLogin = !IsLogin;
         ErrorMessage = string.Empty;
         FullName = Username = Password = ConfirmPassword = string.Empty;
     }
 
-    private async Task LoginUser()
+    private async Task LoginUser() // checking if a user has entered valid login credentials
     {
         if (Database.ValidateUser(Username,Password) == true)
         {
             int userId = Database.GetUserID(Username);
             await AuthService.LoginAsync(userId);
-            NavigationManager.NavigateTo("/Home");
+            NavigationManager.NavigateTo("/Home"); // if they have send them to the home page and inform the front end that they are now logged in
         }
         else
         {
-            ErrorMessage = "Invalid login credentials.";
+            ErrorMessage = "Invalid login credentials."; // if not display an error message
         }
     }
 
-    private async Task RegisterUser()
+    private async Task RegisterUser() // registering a user with valid credentials
     {
-        if (Password != ConfirmPassword)
+        if (Password != ConfirmPassword) // checking if the passwords match
         {
             ErrorMessage = "Passwords do not match.";
             return;
         }
-        if (Database.IsUsernameExists(Username) == false)
+        if (Database.IsUsernameExists(Username) == false) // checking if the username is taken 
         {
             Database.AddUser(Username, Password);
-            ErrorMessage = "Registration successful! You can now log in.";
+            ErrorMessage = "Registration successful! You can now log in."; // if not register the user and then send them to the log in page
             ToggleAuthMode();
         }
         else

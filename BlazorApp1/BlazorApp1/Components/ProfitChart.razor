@@ -4,13 +4,15 @@
 @inject MyServerDb Database
 @inject AuthenticationService authservice
 
+@* this code implements the profit chart page of my front end *@
+
 <h1>Performance Chart</h1>
 
 <p>Find a visual representation of how your portfolio has been peforming overtime where profit has been plotted against time.</p>
 
-<h2>Portolio Graph</h2>
+<h2>Portfolio Graph</h2>
 <div class="container-fluid overflow-x-auto">
-    <LineChart @ref="lineChart" Width="800" />
+    <LineChart @ref="lineChart" Width="800" /> @* formats the space the line chart takes *@
 </div>
 
 @code {
@@ -23,7 +25,7 @@
 
     protected override void OnInitialized()
     {
-        lineChartOptions = new()
+        lineChartOptions = new() // initialising the chart
             {
                 IndexAxis = "x",
                 Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
@@ -35,23 +37,23 @@
     {
         if (firstRender)
         {
-            chartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() };
+            chartData = new ChartData { Labels = new List<string>(), Datasets = new List<IChartDataset>() }; // calling all the profit chart data before initialising it into the chart
             await lineChart.InitializeAsync(chartData, lineChartOptions);
         }
         await base.OnAfterRenderAsync(firstRender);
         await PlotProfitsAsync();
-        await PlotProfitsAsync();
+        await PlotProfitsAsync(); // plotting the graph function twice to fully update all the data
     }
 
-    private async Task PlotProfitsAsync()
+    private async Task PlotProfitsAsync() // function for plotting the points
     {
         int userID = await authservice.GetUserIdAsync();
-        var profitData = Database.GetAllProfits(userID);
+        var profitData = Database.GetAllProfits(userID); // gets the profit chart points relevant to the logged in user
 
         var labels = new List<string>();
         var data = new List<double?>();
 
-        foreach (var profit in profitData)
+        foreach (var profit in profitData) // formatting the objects
         {
             labels.Add(profit.Date.ToString("yyyy-MM-dd"));
             data.Add((double?)profit.Value);
@@ -62,7 +64,7 @@
                 Labels = labels,
                 Datasets = new List<IChartDataset>
             {
-                new LineChartDataset
+                new LineChartDataset // formatting the chart
                 {
                     Label = "Profit",
                     Data = data,
@@ -74,7 +76,7 @@
             }
             };
 
-        await lineChart.UpdateValuesAsync(chartData);
+        await lineChart.UpdateValuesAsync(chartData); // wait for the values to be updated then re render
     }
 
 

@@ -2,6 +2,8 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
+@* This code implements the navigation menu on the side of the UI *@
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">StockProSim</a>
@@ -11,11 +13,11 @@
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        @if (IsAuthenticated == false)
+        @if (IsAuthenticated == false) // checking if they are logged in or not to show the right menu
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Log In
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Log In @* setting the routing path if clicked *@
             </NavLink>
             </div>
         }
@@ -24,52 +26,52 @@
         
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="Home" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home    @* setting the routing path if clicked *@
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="Chart">
-                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chart
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Chart   @* setting the routing path if clicked *@
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="Trade">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Trade
+                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Trade  @* setting the routing path if clicked *@
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="WatchList">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Watch List
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Watch <a href="#"></a>  @* setting the routing path if clicked *@
             </NavLink>
         </div>
 
-            <button style="width: 100%; padding: 10px; background: #d9534f; color: white; border: none; cursor: pointer;"@onclick="Logout">Logout</button>
+            <button style="width: 100%; padding: 10px; background: #d9534f; color: white; border: none; cursor: pointer;"@onclick="Logout">Logout</button> @* formatting the logout button *@
         }
     </nav>
 </div>
 @code {
     private bool IsAuthenticated;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() // as soon as it is loaded check if a user is loaded 
     {
         IsAuthenticated = await AuthService.IsAuthenticatedAsync();
-        AuthService.OnAuthenticationStateChanged += UpdateAuthState;
+        AuthService.OnAuthenticationStateChanged += UpdateAuthState; // if a state change is detected automatically run "UpdateAuthState"
     }
 
-    private async void UpdateAuthState()
+    private async void UpdateAuthState() // rechecks if the user is logged in and then reloads the bar 
     {
         IsAuthenticated = await AuthService.IsAuthenticatedAsync();
         await InvokeAsync(StateHasChanged);
     }
 
-    public void Dispose()
+    public void Dispose() // unsubscribes from the event when done and stops listening
     {
         AuthService.OnAuthenticationStateChanged -= UpdateAuthState;
     }
-    private async Task Logout()
+    private async Task Logout() // when the logout button is pressed navigate back to the log in page and reset the userKey.
     {
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/", forceLoad: true);
