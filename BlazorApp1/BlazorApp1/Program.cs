@@ -26,6 +26,8 @@ namespace BlazorApp1
             builder.Services.AddSingleton<AuthenticationService>();
             builder.Services.AddBlazorBootstrap();
             builder.Services.AddScoped<StockNewsService>();
+            builder.Services.AddScoped<NavigationService>();
+
 
             var app = builder.Build();
 

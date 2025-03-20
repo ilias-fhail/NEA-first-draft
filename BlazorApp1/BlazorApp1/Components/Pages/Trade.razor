@@ -9,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject RiskCalculator Riskcalculator
 @inject AuthenticationService authservice
+@inject NavigationService Navservice
 @rendermode InteractiveServer
 
 @* this code is for my trading page for my front end *@
@@ -64,6 +65,12 @@ else
     <button class="btn btn-danger" @onclick="SellStock">Sell</button>
 </div>
 
+<button @onclick="undo" disabled="@(Navservice.CanUndo() ? null : "true")"
+        style="position: fixed; bottom: 1rem; right: 1rem; padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;"
+        class="undo-button">
+    ⬅ Go Back
+</button>   @* initiallising and formatting the undo button *@
+
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <p class="text-danger">@errorMessage</p>
@@ -80,6 +87,7 @@ else
 
     protected override async Task OnInitializedAsync() // upon loading the page render the table
     {
+        Navservice.RecordNavigation("/Trade");
         int userID = await authservice.GetUserIdAsync();
         tradeHistory = await Database.GetTradeHistoryAsync(userID);
         foreach (var trades in tradeHistory)
@@ -195,6 +203,10 @@ else
     private void UpdateTicker(ChangeEventArgs e) // ensures that the stock ticker entered always looks uppercase in the UI
     {
         newTicker = e.Value?.ToString()?.ToUpper();
+    }
+    private void undo() // calls the stack undo function
+    {
+        Navservice.Undo();
     }
 }
 

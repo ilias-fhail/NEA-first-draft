@@ -3,6 +3,7 @@
 @using StockProSim.Data
 @inject MyServerDb Database
 @inject AuthenticationService authservice
+@inject NavigationService Navservice
 
 @* this code implements the profit chart page of my front end *@
 
@@ -15,6 +16,12 @@
     <LineChart @ref="lineChart" Width="800" /> @* formats the space the line chart takes *@
 </div>
 
+<button @onclick="undo" disabled="@(Navservice.CanUndo() ? null : "true")"
+        style="position: fixed; bottom: 1rem; right: 1rem; padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;"
+        class="undo-button">
+    ⬅ Go Back
+</button>       @* initiallising and formatting the undo button *@
+
 @code {
     private LineChart lineChart = default!;
     private LineChartOptions lineChartOptions = default!;
@@ -25,6 +32,7 @@
 
     protected override void OnInitialized()
     {
+        Navservice.RecordNavigation("/Chart");
         lineChartOptions = new() // initialising the chart
             {
                 IndexAxis = "x",
@@ -78,6 +86,8 @@
 
         await lineChart.UpdateValuesAsync(chartData); // wait for the values to be updated then re render
     }
-
-
+    private void undo() // calls the stack undo function
+    {
+        Navservice.Undo();
+    }
 }

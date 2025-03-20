@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationService AuthService
 @inject MyServerDb Database
+@inject NavigationService Navservice
 @rendermode InteractiveServer
 
 @* this code is for my login/register page fo my front end *@
@@ -63,6 +64,11 @@
     private string Password { get; set; }
     private string ConfirmPassword { get; set; }
     private string ErrorMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navservice.RecordNavigation("/");
+    }
 
     private void ToggleAuthMode() // changing between the authentication modes and resetting any paramaters
     {

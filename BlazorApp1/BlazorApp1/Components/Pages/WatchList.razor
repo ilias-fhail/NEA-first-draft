@@ -8,6 +8,7 @@
 @inject MyServerDb Database
 @inject NavigationManager Navigation
 @inject AuthenticationService authservice
+@inject NavigationService Navservice
 @attribute [StreamRendering]
 @rendermode InteractiveServer
 
@@ -59,6 +60,12 @@ else
 <button class="btn btn-primary" @onclick="AddTickerAsync">Add</button>
 <button class="btn btn-danger" @onclick="RemoveTickerAsync">Remove</button>
 
+<button @onclick="undo" disabled="@(Navservice.CanUndo() ? null : "true")"
+        style="position: fixed; bottom: 1rem; right: 1rem; padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;"
+        class="undo-button">
+    ⬅ Go Back
+</button>   @* initiallising and formatting the undo button *@
+
 @code {
     private string errorMessage = string.Empty;
     private StockData[]? stockdata;
@@ -66,6 +73,7 @@ else
 
     protected override async Task OnInitializedAsync() // upon the page loading get the users watched stocks and generate a table
     {
+        Navservice.RecordNavigation("/WatchList");
         int userID = await authservice.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
         var stockDataList = new List<StockData>();
@@ -140,6 +148,10 @@ else
     private void UpdateTicker(ChangeEventArgs e) // forces the user to type in uppercase in the UI
     {
         newTicker = e.Value?.ToString()?.ToUpper();
+    }
+    private void undo() // calls teh stack undo function
+    {
+        Navservice.Undo();
     }
 }
 

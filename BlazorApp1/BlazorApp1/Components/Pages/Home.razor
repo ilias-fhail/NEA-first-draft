@@ -4,6 +4,8 @@
 @inject StockNewsService StockNewsService
 @inject AuthenticationService AuthService
 @inject MyServerDb Database
+@inject NavigationService Navservice
+@rendermode InteractiveServer
 
 @* this code is for the home page of my front end *@
 
@@ -58,6 +60,11 @@ else
     <p>No stocks currently being watched</p> // if no stocks are being watched which will give a null value for articles display this
 }
 
+<button @onclick="undo" disabled="@(Navservice.CanUndo() ? null : "true")"
+        style="position: fixed; bottom: 1rem; right: 1rem; padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease;"
+        class="undo-button">
+    ⬅ Go Back
+</button>   @* initiallising and formatting the undo button *@
 
 @code {
     private List<NewsArticle> newsArticles;
@@ -66,6 +73,7 @@ else
 
     protected override async Task OnInitializedAsync() // upon loading get the user ID and username as well as fetch the latest news from both the watch list and general news 
     {
+        Navservice.RecordNavigation("/Home");
         int userID = await AuthService.GetUserIdAsync();
         var watchlist = await Database.GetWatchlistAsync(userID);
         username = Database.GetUsername(userID);
@@ -91,5 +99,9 @@ else
         {
             Console.WriteLine("No news articles found."); // logging to the console if news articles couldn't be found for debugging
         }
+    }
+    private void undo() // calls the stack undo function
+    {
+        Navservice.Undo();
     }
 }

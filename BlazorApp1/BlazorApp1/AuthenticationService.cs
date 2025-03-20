@@ -37,7 +37,7 @@ public class AuthenticationService
     {
         UserKey = 0;
     }
-    private void NotifyAuthenticationStateChanged() // letting the front end know a state change has been made to reloud the UI with the updated information
+    public void NotifyAuthenticationStateChanged() // letting the front end know a state change has been made to reloud the UI with the updated information
     {
         OnAuthenticationStateChanged?.Invoke();
     }
