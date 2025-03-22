@@ -14,15 +14,15 @@ namespace NEA_first_draft
     {
         static async Task Main(string[] args)
         {
-            //Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
-            //string ticker = Console.ReadLine();
+            Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
+            string ticker = Console.ReadLine();
 
-            //await APICalls.FetchAndDisplayStockInfo(ticker);
+            await FetchAndDisplayStockInfo(ticker);
             MyServerDb db = new MyServerDb();
             var watchlist = await db.GetWatchlistAsync(1);
             foreach (var item in watchlist)
             {
-                Console.WriteLine(item);
+                //Console.WriteLine(item);
             }
             string apiKey = "BGJXL2TUCOT3RB2K";
 
@@ -67,7 +67,7 @@ namespace NEA_first_draft
                             }
                             else
                             {
-                                Console.WriteLine($"Failed to parse Close/Last value: {values[1]}");
+                               // Console.WriteLine($"Failed to parse Close/Last value: {values[1]}");
                             }
                         }
                     }
@@ -76,35 +76,60 @@ namespace NEA_first_draft
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+               // Console.WriteLine($"An error occurred: {ex.Message}");
             }
             decimal total = 0;
             foreach (var item in closeValues)
             {
-                Console.WriteLine(item);
+                //Console.WriteLine(item);
                 total += item;
             }
-            Console.WriteLine(total / closeValues.Count);
+            //Console.WriteLine(total / closeValues.Count);
 
             if (db.AddUser("testuser", "testpassword"))
             {
-                Console.WriteLine("User added successfully!");
+               // Console.WriteLine("User added successfully!");
             }
 
             // Check if a username exists
             if (db.IsUsernameExists("testuser"))
             {
-                Console.WriteLine("Username exists!");
+                //Console.WriteLine("Username exists!");
             }
 
             // Validate a username and password
             if (db.ValidateUser("testuser", "testpassword"))
             {
-                Console.WriteLine("Login successful!");
+               // Console.WriteLine("Login successful!");
             }
             else
             {
-                Console.WriteLine("Invalid username or password.");
+               // Console.WriteLine("Invalid username or password.");
+            }
+        }
+        public static async Task FetchAndDisplayStockInfo(string ticker)
+        {
+            string baseApi = "https://finnhub.io/api/v1";
+            string apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0";
+
+            APICalls client = new APICalls(baseApi, apiKey);
+
+            StockData stockInfo = await client.FetchStockInfoAsync(ticker);
+
+            if (stockInfo != null)
+            {
+                Console.WriteLine($"Stock Data for {stockInfo.Ticker}:");
+                Console.WriteLine($"- Current Price: {stockInfo.CurrentPrice}");
+                Console.WriteLine($"- High Price: {stockInfo.HighPrice}");
+                Console.WriteLine($"- Low Price: {stockInfo.LowPrice}");
+                Console.WriteLine($"- Open Price: {stockInfo.OpenPrice}");
+                Console.WriteLine($"- Previous Close: {stockInfo.PreviousClose}");
+                Console.WriteLine($"- Price Change: {stockInfo.PriceChange}");
+                Console.WriteLine($"- Last Update: {stockInfo.LastUpdate}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to fetch data for {ticker}.");
             }
         }
     }

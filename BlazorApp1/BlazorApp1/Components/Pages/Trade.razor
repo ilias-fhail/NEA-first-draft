@@ -134,6 +134,7 @@ else
                     try
                     {
                         await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID); // buy the stock and add the trade to the database
+                        tradeHistory = await Database.GetTradeHistoryAsync(userID);
                     }
                     catch (InvalidOperationException ex)        // catch any errors that may be thrown 
                     {
@@ -159,7 +160,6 @@ else
         {
             errorMessage = "Stock ticker cannot be empty.";
         }
-
     }
 
     private async Task SellStock() // sells an amount of stock for a specified ticker and quantity when the button is pressed
