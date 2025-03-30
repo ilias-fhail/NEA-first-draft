@@ -21,7 +21,7 @@ namespace BlazorApp1
                 .AddInteractiveServerComponents();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<MyServerDb>();
-            builder.Services.AddScoped(provider =>new APICalls("https://finnhub.io/api/v1", "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0"));
+            builder.Services.AddScoped(provider =>new APICalls());
             builder.Services.AddScoped<RiskCalculator>();
             builder.Services.AddSingleton<AuthenticationService>();
             builder.Services.AddBlazorBootstrap();

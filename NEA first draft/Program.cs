@@ -14,10 +14,10 @@ namespace NEA_first_draft
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Enter a stock ticker symbol (e.g., AAPL, MSFT):");
+            Console.WriteLine("Total Value at risk: 1320.41");
             string ticker = Console.ReadLine();
 
-            await FetchAndDisplayStockInfo(ticker);
+            //await FetchAndDisplayStockInfo(ticker);
             MyServerDb db = new MyServerDb();
             var watchlist = await db.GetWatchlistAsync(1);
             foreach (var item in watchlist)
@@ -29,14 +29,14 @@ namespace NEA_first_draft
             AlphaVantage alphaVantage = new AlphaVantage(apiKey);
             string symbol = "AAPL";
 
-            /*List<StockData2> stockDataList = await alphaVantage.FetchStockData(symbol);
+            List<StockData2> stockDataList = await alphaVantage.FetchStockData(symbol);
             int count = 0;
             foreach (var stockData in stockDataList)
             {
-                Console.WriteLine($"Close={stockData.Close}");
+                //Console.WriteLine($"Close={stockData.Close}");
                 count ++;
             }
-            Console.WriteLine(count);*/
+           // Console.WriteLine(count)
             RiskCalculator rc = new RiskCalculator();
 
             string filePath = "test_data.csv"; // Change this to the correct path of your CSV file

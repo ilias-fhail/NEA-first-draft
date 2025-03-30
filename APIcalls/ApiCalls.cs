@@ -54,67 +54,101 @@
         public long Volume { get; set; }
     }
 
-    public class APICalls // class for the API calls from Finhub API
+    public class APICalls // Base class for API calls to Finnhub
     {
-        private readonly string _baseApi;
-        private readonly string _apiKey;
+        protected readonly string _baseApi;
+        protected readonly string _apiKey;
 
-        public APICalls(string baseApi, string apiKey) // the constructor here sets the API key and base API where the API is one that any user can use in this case as it doesnt have a daily limit
+        public APICalls(string baseApi = "https://finnhub.io/api/v1", string apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0") // Default values for baseApi and apiKey
         {
-            _baseApi = "https://finnhub.io/api/v1";
-            _apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0";
+            _baseApi = baseApi;
+            _apiKey = apiKey;
         }
-        public async Task<StockData?> FetchStockInfoAsync(string ticker) // defining the function that retrieves stock information from an inputted ticker.
+
+        public async Task<StockData?> FetchStockInfoAsync(string ticker) // Retrieve stock information for a specific ticker
         {
             using (HttpClient client = new HttpClient())
             {
-                string url = $"{_baseApi}/quote?symbol={ticker}&token={_apiKey}"; // creating the HTTP request.
+                string url = $"{_baseApi}/quote?symbol={ticker}&token={_apiKey}";
                 HttpResponseMessage response = await client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonResponse = await response.Content.ReadAsStringAsync();
-                    var stockData = JsonConvert.DeserializeObject<StockData>(jsonResponse); // Storing the recieved data as a stock data object
+                    var stockData = JsonConvert.DeserializeObject<StockData>(jsonResponse);
                     if (stockData != null)
                     {
-                        stockData.Ticker = ticker; // adding the stock ticker to the object as it is not included in the response
+                        stockData.Ticker = ticker;
                     }
                     return stockData;
                 }
                 else
                 {
-                    Console.WriteLine("Could not get data. (Finhub API)"); // If the API call does not generate a valid response an error is logged into the console for debugging.
+                    Console.WriteLine("Could not get data. (Finhub API)");
                     return null;
                 }
             }
         }
-        public async Task<decimal> FetchCurrentPriceAsync(string ticker) // this function just gets the current price of a stock and no other information.
+
+        public async Task<decimal> FetchCurrentPriceAsync(string ticker) // Get the current price of a stock
         {
             using (HttpClient client = new HttpClient())
             {
-                string url = $"{_baseApi}/quote?symbol={ticker}&token={_apiKey}"; // creating the HTTP request
+                string url = $"{_baseApi}/quote?symbol={ticker}&token={_apiKey}";
                 HttpResponseMessage response = await client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonResponse = await response.Content.ReadAsStringAsync();
-                    var json = JsonConvert.DeserializeObject<dynamic>(jsonResponse); // Storing the response as a dynamic data type as there is no custom object for this response.
+                    var json = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
 
-                    if (json != null && json["c"] != null) //checking to see if a current price was returned as it is binded to the Json object "c"
+                    if (json != null && json["c"] != null)
                     {
                         return (decimal)json["c"];
                     }
-                    else { return 0; }
+                    else
+                    {
+                        return 0;
+                    }
                 }
-                else 
+                else
                 {
-                    Console.WriteLine("Could not get data. (Finhub API)"); // If an error occured in the API call an error is logged into the console for debugging
-                    return 0; 
+                    Console.WriteLine("Could not get data. (Finhub API)");
+                    return 0;
                 }
             }
         }
-
     }
+
+    public class StockNewsService : APICalls // Subclass for handling stock news
+    {
+        private readonly HttpClient _httpClient;
+
+        public StockNewsService(HttpClient httpClient) : base() // Call the base class constructor
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<List<NewsArticle>> GetStockNewsAsync() // Get general stock news
+        {
+            string url = $"https://finnhub.io/api/v1/news?category=general&token={this._apiKey}"; // Uses base class apiKey
+
+            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
+            return response?.Take(5).ToList() ?? new List<NewsArticle>(); // Only take the first 5 articles
+        }
+
+        public async Task<NewsArticle?> GetStockNewsByTickerAsync(string ticker) // Get stock news for a specific ticker from the last 7 days
+        {
+            string fromDate = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-dd");
+            string toDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+            string url = $"https://finnhub.io/api/v1/company-news?symbol={ticker}&from={fromDate}&to={toDate}&token={this._apiKey}";
+
+            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
+            return response?.FirstOrDefault();
+        }
+    }
+
     public class AlphaVantage // class for API calls to AlphaVantage API
     {
         private string apiKey;
@@ -190,35 +224,6 @@
             }
 
             return allStockData;
-        }
-    }
-    public class StockNewsService // API class for the Stock news API calls which also come from finhub API but has been seperated as it uses a different plan.
-    {
-        private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
-
-        public StockNewsService(HttpClient httpClient) //constructor initialising the API key as again this key can withstand the volume with no limit.
-        {
-            _httpClient = httpClient;
-            _apiKey = "cpnv24hr01qru1ca7qdgcpnv24hr01qru1ca7qe0";
-        }
-
-        public async Task<List<NewsArticle>> GetStockNewsAsync() // function for getting general stock news
-        {
-            string url = $"https://finnhub.io/api/v1/news?category=general&token={_apiKey}"; //creating the HTTP request
-
-            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
-            return response?.Take(5).ToList() ?? new List<NewsArticle>();  //only takes the first 5 responses and formats them into a list of news articles.
-        }
-        public async Task<NewsArticle?> GetStockNewsByTickerAsync(string ticker) // this function gets news from the last 7 days about specific stocks.
-        {
-            string fromDate = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-dd"); // calculates the date 7 days ago.
-            string toDate = DateTime.UtcNow.ToString("yyyy-MM-dd"); // gets the current date
-
-            string url = $"https://finnhub.io/api/v1/company-news?symbol={ticker}&from={fromDate}&to={toDate}&token={_apiKey}"; // creates the HTTP request.
-
-            var response = await _httpClient.GetFromJsonAsync<List<NewsArticle>>(url);
-            return response?.FirstOrDefault(); //resturns rather the first item in the response which is the first article or its default type which in this case is null.
         }
     }
 }

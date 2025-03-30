@@ -18,7 +18,7 @@
 
 <h1>Trade</h1>
 
-<p>Welcome to the trade page. Enter a valid stocker and a stock quantity and select weatehr to buy or sell. You will also find an analysis of you portfolio performance with a value at risk calculated as well as your total profits.</p>
+<p>Welcome to the trade page. Enter a valid stocker and a stock quantity and select whether to buy or sell. You will also find an analysis of you portfolio performance with a value at risk calculated as well as your total profits.</p>
 
 <h2>Trade Simulator</h2>
 
@@ -135,6 +135,8 @@ else
                     {
                         await Database.BuyStockAsync(newTicker, stockData.CurrentPrice, stockData.CurrentPrice, stockData.PriceChange, quantity, userID); // buy the stock and add the trade to the database
                         tradeHistory = await Database.GetTradeHistoryAsync(userID);
+                        tradeProfits = await Database.GetProfits(userID);
+                        VAR = await Riskcalculator.GetVAR(tradeHistory);
                     }
                     catch (InvalidOperationException ex)        // catch any errors that may be thrown 
                     {
